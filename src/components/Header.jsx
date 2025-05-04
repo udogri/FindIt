@@ -28,7 +28,7 @@ export default function Header() {
 
   return (
     <Box bg="teal.500" px={4} position="relative">
-      <Flex h={16} alignItems="center" justifyContent="space-between">
+      <Flex h={16} align="center" alignItems="center" justifyContent="space-between">
         <Box color="white" fontWeight="bold">FindIt</Box>
         <IconButton
           size="md"
