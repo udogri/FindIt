@@ -1,6 +1,8 @@
 // src/pages/LandingPage.jsx
 import { Box, Heading, Text, Button, Image, Stack } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
+import heroPicture from '../assets/hero.jpg'; // Adjust the path as necessary
+
 
 export default function LandingPage() {
   return (
@@ -19,7 +21,7 @@ export default function LandingPage() {
         </Box>
         <Box flex={1}>
           <Image
-            src="https://source.unsplash.com/600x400/?lost,found"
+            src={heroPicture}
             alt="Lost and Found"
             borderRadius="md"
           />
