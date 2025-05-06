@@ -16,7 +16,7 @@ const NavLink = ({ name, path, onClose }) => (
     px={2}
     py={1}
     rounded="md"
-    _hover={{ textDecoration: 'none', bg: 'gray.200' }}
+    _hover={{ textDecoration: 'underline' }}
     onClick={onClose} // call onClose to close the dropdown on click
   >
     {name}
@@ -37,7 +37,7 @@ export default function Header() {
           display={{ md: 'none' }}
           onClick={isOpen ? onClose : onOpen}
         />
-        <HStack spacing={8} alignItems="center" display={{ base: 'none', md: 'flex' }}>
+        <HStack spacing={8} color="white" fontWeight="600" alignItems="center" display={{ base: 'none', md: 'flex' }}>
           {Links.map((link) => (
             <NavLink key={link.name} name={link.name} path={link.path} />
           ))}
@@ -55,7 +55,7 @@ export default function Header() {
           left="0"
           w="100%"
         >
-          <Stack as="nav" spacing={4}>
+          <Stack as="nav" color="white" fontWeight="600" spacing={4}>
             {Links.map((link) => (
               <NavLink key={link.name} name={link.name} path={link.path} onClose={onClose} />
             ))}
