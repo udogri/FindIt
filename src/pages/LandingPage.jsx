@@ -20,7 +20,7 @@ export default function LandingPage() {
        >
         <Box flex={1} p={8} mt="50px" color="white" align="center"  textAlign="center">
           <Text fontSize={{base:"30px", md:"71px"}} fontWeight="600" color="white" >
-          The first online meeting point between{" "}
+          The meeting point between{" "}
                 <Text as="span" color="#8C9492">
                 who's looking for a lost item and who's found it
                 </Text>
