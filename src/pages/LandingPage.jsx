@@ -18,7 +18,7 @@ export default function LandingPage() {
       bgSize="cover"
       h="100vh"
        >
-        <Box flex={1} p={8} mt="50px" color="white" align="center"  textAlign="center">
+        <Box  p={8} mt="50px" color="white" align="center"  textAlign="center">
           <Text fontSize={{base:"30px", md:"71px"}} fontWeight="600" color="white" >
           The meeting point between{" "}
                 <Text as="span" color="#8C9492">
@@ -26,7 +26,7 @@ export default function LandingPage() {
                 </Text>
             </Text>
           
-          <Button as={RouterLink} to="/lost-and-found" colorScheme="teal" size="lg">
+          <Button mt="10px" mb="10px" as={RouterLink} to="/lost-and-found" colorScheme="teal" size="lg">
             Get Started
           </Button>
         </Box>
@@ -50,15 +50,15 @@ export default function LandingPage() {
                 about FindIt
               </Text>
               <Text  fontSize={{base:"25px", md:"50px"}} fontWeight="600" color="black" >
-                Transforming Lives Through{" "}
+                Helping you find{" "}
                 <Text as="span" color="#8C9492">
-                  Education & Mentorship
+                  your lost items
                 </Text>
               </Text>
               <Text  fontSize={{base:"10px", md:"17px"}} color="#71717A" w={{base: "300px", md: "500px"}}>
-                At One by One, we believe in the power of individual impact. Our
-                mission is simple: to connect promising students from
-                underserved communities with sponsors and mentors who can change their lives.
+              FindIt is a community-driven platform dedicated to helping people find lost items
+               and return found belongings. Whether it's a misplaced phone, a lost pet, or a found
+              wallet, FindIt connects people in need with those who can help.
               </Text>
               <Flex >
                 <Button w={{base:"150px", md: "171px"}} bg="#39996B" fontWeight="400" fontSize={{base:"12px", md:"14px"}} px="28px" py="10px" color="#ffff" >learn more about us </Button>
