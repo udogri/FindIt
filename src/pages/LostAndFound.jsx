@@ -23,7 +23,8 @@ export default function LostAndFound() {
       <Text mb={8}>Browse or report lost and found items in your community.</Text>
 
       <Button
-        colorScheme="teal"
+        background="#34495e"
+        color="white"
         mb={8}
         onClick={() => navigate('/report-item')}
       >

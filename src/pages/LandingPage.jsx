@@ -16,17 +16,17 @@ export default function LandingPage() {
        bgPosition="center"
       bgRepeat="no-repeat"
       bgSize="cover"
-      h="100vh"
+      h="70vh"
        >
         <Box  p={8} mt="50px" color="white" align="center"  textAlign="center">
-          <Text fontSize={{base:"30px", md:"71px"}} fontWeight="600" color="white" >
+          <Text fontSize={{base:"30px", md:"50px"}} fontWeight="600" color="white" >
           The meeting point between{" "}
                 <Text as="span" color="#8C9492">
                 who's looking for a lost item and who's found it
                 </Text>
             </Text>
           
-          <Button mt="10px" mb="10px" as={RouterLink} to="/lost-and-found" colorScheme="teal" size="lg">
+          <Button mt="10px" mb="10px" as={RouterLink} to="/lost-and-found" color="white" background="#34495e" size="lg">
             Get Started
           </Button>
         </Box>
@@ -61,7 +61,7 @@ export default function LandingPage() {
               wallet, FindIt connects people in need with those who can help.
               </Text>
               <Flex >
-                <Button w={{base:"150px", md: "171px"}} bg="#39996B" fontWeight="400" fontSize={{base:"12px", md:"14px"}} px="28px" py="10px" color="#ffff" >learn more about us </Button>
+                <Button w={{base:"150px", md: "171px"}} bg="#34495e" fontWeight="400" fontSize={{base:"12px", md:"14px"}} px="28px" py="10px" color="#ffff" >learn more about us </Button>
               </Flex>
             </Stack>
             {/* <Image
