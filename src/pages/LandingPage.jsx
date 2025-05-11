@@ -1,5 +1,5 @@
 // src/pages/LandingPage.jsx
-import { Box, Heading, Text, Button, Image, Stack, Flex } from '@chakra-ui/react';
+import { Box, VStack, Text, Button, Image, Stack, Flex } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
 import LandingPageImage from '../assets/LandingPageImage.jpg'; // Adjust the path as necessary
 
@@ -84,6 +84,32 @@ export default function LandingPage() {
             /> */}
 
           </Flex>
+          <Box bg="#091C13" align="center" justifyContent="center" py="80px" px="60px">
+            <Box align="center" justifyContent="center" display={{base: "grid", md: "flex"}}>
+              <Text fontSize={{base: "20px", md: "50px"}} fontWeight="700" textAlign="center" mr={{base: "none", md: "150px"}} mb={{base: "20px", md: "none"}}>
+                Our{" "}
+                <Text as="span" color="#8C9492">
+                  Impact
+                </Text>
+              </Text>
+              <Box >
+                <Box display={{base: "grid", md: "flex"}} gap="10px">
+                  <VStack borderRadius="15px" mb={{base: "20px", md: "none"}} borderLeftWidth="3px" borderLeftStyle="solid" borderLeftColor="#39996B29" p={{base: "20px", md: "30px"}}  >
+                    <Text fontSize={{base: "30px", md: "48px"}} fontWeight="600" color="#98ACA3">100+</Text>
+                    <Text fontSize={{base: "14px", md: "17px"}} fontWeight="400" color="white" >Items found</Text>
+                  </VStack>
+                  <VStack borderRadius="15px" mb={{base: "20px", md: "none"}} borderLeftWidth="3px" borderLeftStyle="solid" borderLeftColor="#39996B29" p="30px"  >
+                    <Text fontSize={{base: "30px", md: "48px"}} fontWeight="600" color="#98ACA3">50+</Text>
+                    <Text fontSize={{base: "14px", md: "17px"}} fontWeight="400" color="white" >Items recovered</Text>
+                  </VStack>
+                  <VStack borderRadius="15px" mb={{base: "20px", md: "none"}} borderLeftWidth="3px" borderLeftStyle="solid" borderLeftColor="#39996B29" p="30px"  >
+                    <Text fontSize={{base: "30px", md: "48px"}} fontWeight="600" color="#98ACA3">160+</Text>
+                    <Text fontSize={{base: "14px", md: "17px"}} fontWeight="400" color="white" >Satisfied people</Text>
+                  </VStack>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
     </Box>
   );
 }
