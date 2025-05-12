@@ -26,7 +26,7 @@ export default function LandingPage() {
                 </Text>
             </Text>
           
-          <Button mt="10px" mb="10px" as={RouterLink} to="/lost-and-found" color="white" background="#34495e" size="lg">
+          <Button mt="10px" mb="10px" as={RouterLink} to="/lost-and-found" color="white" background="#34495e" _hover={{ bg: "transparent", color: "white", border: "1px solid white" }} size="lg">
             Get Started
           </Button>
         </Box>
@@ -61,7 +61,7 @@ export default function LandingPage() {
               wallet, FindIt connects people in need with those who can help.
               </Text>
               <Flex >
-                <Button w={{base:"150px", md: "171px"}} bg="#34495e" fontWeight="400" fontSize={{base:"12px", md:"14px"}} px="28px" py="10px" color="#ffff" >learn more about us </Button>
+                <Button w={{base:"150px", md: "171px"}} bg="#34495e" fontWeight="400" fontSize={{base:"12px", md:"14px"}} px="28px" py="10px" color="#ffff" _hover={{ bg: "transparent", color: "#34495e", border: "1px solid #34495e" }} >learn more about us </Button>
               </Flex>
             </Stack>
             {/* <Image
