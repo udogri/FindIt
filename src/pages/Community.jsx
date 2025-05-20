@@ -23,6 +23,7 @@ import {
   Textarea,
   Select,
 } from '@chakra-ui/react';
+import ReportDetailsModal from '../components/ReportDetails';
 
 const mockReports = [
   {
@@ -50,6 +51,13 @@ const Community = () => {
     status: 'Lost',
     image: '',
   });
+
+  const [selectedReport, setSelectedReport] = useState(null);
+
+  const openDetails = (report) => {
+    setSelectedReport(report);
+    onOpen();
+  };
 
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
@@ -110,8 +118,11 @@ const Community = () => {
               p={4}
               shadow="md"
               borderRadius="md"
+              cursor="pointer"
+              _hover={{ boxShadow: 'lg' }}
               borderLeft="6px solid"
               borderColor={report.status === 'Lost' ? 'red.400' : 'green.400'}
+              onClick={() => openDetails(report)}
             >
               <Image
                 src={report.image}
@@ -126,13 +137,22 @@ const Community = () => {
               <Text fontSize="sm" color="gray.600" mt={2}>
                 {report.description}
               </Text>
-              <Text fontSize="xs" mt={2} fontWeight="bold" color={report.status === 'Lost' ? 'red.500' : 'green.500'}>
+              <Text
+                fontSize="xs"
+                mt={2}
+                fontWeight="bold"
+                color={report.status === 'Lost' ? 'red.500' : 'green.500'}
+              >
                 Status: {report.status}
               </Text>
             </Box>
           ))}
         </SimpleGrid>
       </Box>
+
+
+      <ReportDetailsModal isOpen={isOpen} onClose={onClose} report={selectedReport} />
+
 
       {/* Footer Message */}
       <Box mt={16} textAlign="center">
@@ -143,46 +163,46 @@ const Community = () => {
       </Box>
 
       {/* Modal Form */}
-      <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Report {formData.status} Item</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <Stack spacing={4}>
-              <FormControl isRequired>
-                <FormLabel>Title</FormLabel>
-                <Input name="title" value={formData.title} onChange={handleInputChange} placeholder="e.g. Lost iPhone 12" />
-              </FormControl>
+        {/* <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Report {formData.status} Item</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody pb={6}>
+              <Stack spacing={4}>
+                <FormControl isRequired>
+                  <FormLabel>Title</FormLabel>
+                  <Input name="title" value={formData.title} onChange={handleInputChange} placeholder="e.g. Lost iPhone 12" />
+                </FormControl>
 
-              <FormControl isRequired>
-                <FormLabel>Description</FormLabel>
-                <Textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Enter description..." />
-              </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Description</FormLabel>
+                  <Textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Enter description..." />
+                </FormControl>
 
-              <FormControl isRequired>
-                <FormLabel>Upload Image</FormLabel>
-                <Input name="image" type="file" accept="image/*" onChange={handleInputChange} />
-              </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Upload Image</FormLabel>
+                  <Input name="image" type="file" accept="image/*" onChange={handleInputChange} />
+                </FormControl>
 
-              <FormControl>
-                <FormLabel>Status</FormLabel>
-                <Select name="status" value={formData.status} onChange={handleInputChange}>
-                  <option value="Lost">Lost</option>
-                  <option value="Found">Found</option>
-                </Select>
-              </FormControl>
-            </Stack>
-          </ModalBody>
+                <FormControl>
+                  <FormLabel>Status</FormLabel>
+                  <Select name="status" value={formData.status} onChange={handleInputChange}>
+                    <option value="Lost">Lost</option>
+                    <option value="Found">Found</option>
+                  </Select>
+                </FormControl>
+              </Stack>
+            </ModalBody>
 
-          <ModalFooter>
-            <Button colorScheme="teal" onClick={handleSubmit} mr={3}>
-              Submit Report
-            </Button>
-            <Button onClick={onClose}>Cancel</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+            <ModalFooter>
+              <Button colorScheme="teal" onClick={handleSubmit} mr={3}>
+                Submit Report
+              </Button>
+              <Button onClick={onClose}>Cancel</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal> */}
     </Box>
   );
 };
