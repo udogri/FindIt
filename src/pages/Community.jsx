@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Heading,
@@ -10,48 +10,17 @@ import {
   VStack,
   HStack,
   useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
-  FormControl,
-  FormLabel,
-  Input,
-  Textarea,
-  Select,
 } from '@chakra-ui/react';
+import { getDocs, collection } from 'firebase/firestore';
+import { db } from '../firebase'; // Adjust the path if needed
 import ReportDetailsModal from '../components/ReportDetails';
-
-const mockReports = [
-  {
-    id: 1,
-    title: 'Lost Dog - Golden Retriever',
-    description: 'Last seen around GRA Phase 2, Port Harcourt.',
-    image: '/assets/lost-dog.jpg',
-    status: 'Lost',
-  },
-  {
-    id: 2,
-    title: 'Found Backpack',
-    description: 'Found near Yaba bus stop, contains school books.',
-    image: '/assets/found-backpack.jpg',
-    status: 'Found',
-  },
-];
 
 const Community = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [reports, setReports] = useState(mockReports);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    status: 'Lost',
-    image: '',
-  });
 
+  const [lostItems, setLostItems] = useState([]);
+  const [foundItems, setFoundItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState(null);
 
   const openDetails = (report) => {
@@ -59,29 +28,37 @@ const Community = () => {
     onOpen();
   };
 
-  const handleInputChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === 'image') {
-      const file = files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, image: reader.result }));
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
+  useEffect(() => {
+    const fetchItems = async () => {
+      setLoading(true);
+      try {
+        const lostSnapshot = await getDocs(collection(db, 'lostItems'));
+        const foundSnapshot = await getDocs(collection(db, 'foundItems'));
 
-  const handleSubmit = () => {
-    const newReport = {
-      ...formData,
-      id: reports.length + 1,
+        const lostData = lostSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          status: 'Lost',
+        }));
+
+        const foundData = foundSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          status: 'Found',
+        }));
+
+        setLostItems(lostData);
+        setFoundItems(foundData);
+      } catch (error) {
+        console.error('Error fetching items:', error);
+      }
+      setLoading(false);
     };
-    setReports((prev) => [newReport, ...prev]);
-    setFormData({ title: '', description: '', status: 'Lost', image: '' });
-    onClose();
-  };
+
+    fetchItems();
+  }, []);
+
+  const allReports = [...lostItems, ...foundItems];
 
   return (
     <Box px={8} py={12} bg="gray.50">
@@ -93,14 +70,12 @@ const Community = () => {
         </Text>
         <HStack spacing={4}>
           <Button colorScheme="red" onClick={() => {
-            setFormData((prev) => ({ ...prev, status: 'Lost' }));
-            onOpen();
+            // Implement reporting form trigger if needed
           }}>
             Report Lost Item
           </Button>
           <Button colorScheme="green" variant="outline" onClick={() => {
-            setFormData((prev) => ({ ...prev, status: 'Found' }));
-            onOpen();
+            // Implement reporting form trigger if needed
           }}>
             Report Found Item
           </Button>
@@ -110,49 +85,55 @@ const Community = () => {
       {/* Reports Section */}
       <Box mt={12}>
         <Heading size="lg" mb={6}>Recent Reports</Heading>
-        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
-          {reports.map((report) => (
-            <Box
-              key={report.id}
-              bg="white"
-              p={4}
-              shadow="md"
-              borderRadius="md"
-              cursor="pointer"
-              _hover={{ boxShadow: 'lg' }}
-              borderLeft="6px solid"
-              borderColor={report.status === 'Lost' ? 'red.400' : 'green.400'}
-              onClick={() => openDetails(report)}
-            >
-              <Image
-                src={report.image}
-                alt={report.title}
-                objectFit="cover"
-                w="100%"
-                h="200px"
+
+        {loading ? (
+          <Text textAlign="center" color="gray.500">Loading reports...</Text>
+        ) : (
+          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
+            {allReports.map((report) => (
+              <Box
+                key={report.id}
+                bg="white"
+                p={4}
+                shadow="md"
                 borderRadius="md"
-                mb={4}
-              />
-              <Heading size="md">{report.title}</Heading>
-              <Text fontSize="sm" color="gray.600" mt={2}>
-                {report.description}
-              </Text>
-              <Text
-                fontSize="xs"
-                mt={2}
-                fontWeight="bold"
-                color={report.status === 'Lost' ? 'red.500' : 'green.500'}
+                cursor="pointer"
+                _hover={{ boxShadow: 'lg' }}
+                borderLeft="6px solid"
+                borderColor={report.status === 'Lost' ? 'red.400' : 'green.400'}
+                onClick={() => openDetails(report)}
               >
-                Status: {report.status}
-              </Text>
-            </Box>
-          ))}
-        </SimpleGrid>
+                {report.imageUrl && (
+                  <Image
+                    src={report.imageUrl}
+                    alt={report.title}
+                    objectFit="cover"
+                    w="100%"
+                    h="200px"
+                    borderRadius="md"
+                    mb={4}
+                  />
+                )}
+                <Heading size="md">{report.title}</Heading>
+                <Text fontSize="sm" color="gray.600" mt={2}>
+                  {report.description}
+                </Text>
+                <Text
+                  fontSize="xs"
+                  mt={2}
+                  fontWeight="bold"
+                  color={report.status === 'Lost' ? 'red.500' : 'green.500'}
+                >
+                  Status: {report.status}
+                </Text>
+              </Box>
+            ))}
+          </SimpleGrid>
+        )}
       </Box>
 
-
+      {/* Report Details Modal */}
       <ReportDetailsModal isOpen={isOpen} onClose={onClose} report={selectedReport} />
-
 
       {/* Footer Message */}
       <Box mt={16} textAlign="center">
@@ -161,48 +142,6 @@ const Community = () => {
           Every shared post, every report, every watchful eye counts. Be part of the solution — help others and let others help you.
         </Text>
       </Box>
-
-      {/* Modal Form */}
-        {/* <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Report {formData.status} Item</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody pb={6}>
-              <Stack spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>Title</FormLabel>
-                  <Input name="title" value={formData.title} onChange={handleInputChange} placeholder="e.g. Lost iPhone 12" />
-                </FormControl>
-
-                <FormControl isRequired>
-                  <FormLabel>Description</FormLabel>
-                  <Textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Enter description..." />
-                </FormControl>
-
-                <FormControl isRequired>
-                  <FormLabel>Upload Image</FormLabel>
-                  <Input name="image" type="file" accept="image/*" onChange={handleInputChange} />
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel>Status</FormLabel>
-                  <Select name="status" value={formData.status} onChange={handleInputChange}>
-                    <option value="Lost">Lost</option>
-                    <option value="Found">Found</option>
-                  </Select>
-                </FormControl>
-              </Stack>
-            </ModalBody>
-
-            <ModalFooter>
-              <Button colorScheme="teal" onClick={handleSubmit} mr={3}>
-                Submit Report
-              </Button>
-              <Button onClick={onClose}>Cancel</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal> */}
     </Box>
   );
 };

@@ -41,7 +41,7 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
         <ModalBody>
           <VStack spacing={4} align="start">
             <Image
-              src={report.image}
+              src={report.imageUrl}
               alt={report.title}
               objectFit="cover"
               w="100%"

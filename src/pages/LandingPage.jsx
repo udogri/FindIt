@@ -26,7 +26,7 @@ export default function LandingPage() {
                 </Text>
             </Text>
           
-          <Button mt="10px" mb="10px" as={RouterLink} to="/lost-and-found" color="white" background="#34495e" _hover={{ bg: "transparent", color: "white", border: "1px solid white" }} size="lg">
+          <Button mt="10px" mb="10px" as={RouterLink} to="/login/signup" color="white" background="#34495e" _hover={{ bg: "transparent", color: "white", border: "1px solid white" }} size="lg">
             Get Started
           </Button>
         </Box>

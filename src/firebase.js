@@ -2,18 +2,21 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { getAuth } from 'firebase/auth';
+
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+ apiKey: "AIzaSyC0u7Ik4KV3mcHeylwyhCBg90fFVr_iSZI",
+  authDomain: "findit-f0c29.firebaseapp.com",
+  projectId: "findit-f0c29",
+storageBucket: "findit-f0c29.appspot.com",
+  messagingSenderId: "4075920337",
+  appId: "1:4075920337:web:e66b843dfda60829601ef0"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const storage = getStorage(app);
+const auth = getAuth(app);
 
-export { db, storage };
+export { db, storage, auth };

@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import LostAndFound from './pages/LostAndFound';
 import Community from './pages/Community';
 import { Box, Flex } from '@chakra-ui/react';
+import LoginSignup from './pages/LoginSignup';
 
 function App() {
   return (
@@ -14,10 +15,11 @@ function App() {
       <Header />
       <Box flex="1">
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/home" element={<Home />} />
+          <Route path="/LandingPage" element={<LandingPage />} />
+          <Route path="/" element={<Home />} />
           <Route path="/lost-and-found" element={<LostAndFound />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/login/signup" element={<LoginSignup />} />
         </Routes>
       </Box>
       <Footer />

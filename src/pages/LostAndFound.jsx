@@ -25,46 +25,48 @@ import {
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { db, storage } from '../firebase';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc  } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function LostAndFound() {
   const isMobile = useBreakpointValue({ base: true, md: false });
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [editMode, setEditMode] = useState(false);
+  const [editItemId, setEditItemId] = useState(null);
+  const [editCollectionName, setEditCollectionName] = useState('');
 
-  // Form state including type (lost or found)
+  // Form state
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     image: null,
-    type: 'lost', // either 'lost' or 'found'
+    imageUrl: '',
+    type: 'lost',
+    lastSeen: '',
   });
 
-  // State to hold fetched items from Firestore
   const [lostItems, setLostItems] = useState([]);
   const [foundItems, setFoundItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch items from Firestore on mount
+  const fetchItems = async () => {
+    setLoading(true);
+    try {
+      const lostSnapshot = await getDocs(collection(db, 'lostItems'));
+      const foundSnapshot = await getDocs(collection(db, 'foundItems'));
+
+      setLostItems(lostSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setFoundItems(foundSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    } catch (error) {
+      console.error('Error fetching items:', error);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchItems = async () => {
-      setLoading(true);
-      try {
-        const lostSnapshot = await getDocs(collection(db, 'lostItems'));
-        const foundSnapshot = await getDocs(collection(db, 'foundItems'));
-
-        setLostItems(lostSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        setFoundItems(foundSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      } catch (error) {
-        console.error('Error fetching items:', error);
-      }
-      setLoading(false);
-    };
-
     fetchItems();
   }, []);
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === 'image') {
@@ -74,7 +76,6 @@ export default function LostAndFound() {
     }
   };
 
-  // Submit handler: upload image and save document
   const handleSubmit = async () => {
     if (!formData.title || !formData.description) {
       alert('Please fill in the title and description.');
@@ -82,39 +83,83 @@ export default function LostAndFound() {
     }
 
     try {
-      let imageUrl = '';
+      let imageUrl = formData.imageUrl;
+
       if (formData.image) {
-        const imageRef = ref(storage, `lostfound/${Date.now()}_${formData.image.name}`);
-        await uploadBytes(imageRef, formData.image);
-        imageUrl = await getDownloadURL(imageRef);
+        const data = new FormData();
+        data.append('image', formData.image);
+
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=bc6aa3a9cee7036d9b191018c92c893a`, {
+          method: 'POST',
+          body: data,
+        });
+
+        if (!res.ok) throw new Error('Image upload failed');
+        const file = await res.json();
+        imageUrl = file.data.url;
       }
 
-      // Choose collection based on type
       const collectionName = formData.type === 'found' ? 'foundItems' : 'lostItems';
 
-      await addDoc(collection(db, collectionName), {
-        title: formData.title,
-        description: formData.description,
-        imageUrl,
-        createdAt: new Date()
-      });
+      if (editMode) {
+        const docRef = doc(db, editCollectionName, editItemId);
+        await updateDoc(docRef, {
+          title: formData.title,
+          description: formData.description,
+          imageUrl,
+          lastSeen: formData.lastSeen || '',
+        });
+      } else {
+        await addDoc(collection(db, collectionName), {
+          title: formData.title,
+          description: formData.description,
+          imageUrl,
+          lastSeen: formData.lastSeen || '',
+          createdAt: new Date()
+        });
+      }
 
-      // Clear form and close modal
-      setFormData({ title: '', description: '', image: null, type: 'lost' });
-      onClose();
-
-      // Refresh items after submission
-      setLoading(true);
-      const lostSnapshot = await getDocs(collection(db, 'lostItems'));
-      const foundSnapshot = await getDocs(collection(db, 'foundItems'));
-      setLostItems(lostSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setFoundItems(foundSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setLoading(false);
-
+      resetForm();
+      await fetchItems();
     } catch (error) {
       console.error('Error submitting item:', error);
       alert('Error submitting item. Please try again.');
     }
+  };
+
+  const handleEdit = (item, collectionName) => {
+    setEditMode(true);
+    setEditItemId(item.id);
+    setEditCollectionName(collectionName);
+    setFormData({
+      title: item.title,
+      description: item.description,
+      image: null,
+      imageUrl: item.imageUrl || '',
+      type: collectionName === 'foundItems' ? 'found' : 'lost',
+      lastSeen: item.lastSeen || '',
+    });
+    onOpen();
+  };
+
+  const handleDelete = async (id, collectionName) => {
+    if (window.confirm('Are you sure you want to delete this item?')) {
+      try {
+        await deleteDoc(doc(db, collectionName, id));
+        await fetchItems();
+      } catch (error) {
+        console.error('Error deleting item:', error);
+        alert('Failed to delete item.');
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({ title: '', description: '', image: null, imageUrl: '', type: 'lost', lastSeen: '' });
+    setEditMode(false);
+    setEditItemId(null);
+    setEditCollectionName('');
+    onClose();
   };
 
   return (
@@ -122,15 +167,18 @@ export default function LostAndFound() {
       <Heading mb={4}>Lost & Found</Heading>
       <Text mb={8}>Browse or report lost and found items in your community.</Text>
 
-      <Button background="#34495e" color="white" mb={8} onClick={onOpen}>
+      <Button background="#34495e" color="white" mb={8} onClick={() => {
+        resetForm();
+        onOpen();
+      }}>
         Report Lost or Found Item
       </Button>
 
       {/* Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="lg" scrollBehavior="inside">
+      <Modal isOpen={isOpen} onClose={resetForm} size="lg" scrollBehavior="inside">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Report Lost or Found Item</ModalHeader>
+          <ModalHeader>{editMode ? 'Edit Item' : 'Report Lost or Found Item'}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
@@ -146,6 +194,10 @@ export default function LostAndFound() {
                 <Input name="title" value={formData.title} onChange={handleChange} />
               </FormControl>
               <FormControl>
+                <FormLabel>Last seen</FormLabel>
+                <Textarea name="lastSeen" value={formData.lastSeen} onChange={handleChange} />
+              </FormControl>
+              <FormControl>
                 <FormLabel>Description</FormLabel>
                 <Textarea name="description" value={formData.description} onChange={handleChange} />
               </FormControl>
@@ -155,32 +207,30 @@ export default function LostAndFound() {
               </FormControl>
               {formData.image && (
                 <Box boxSize="150px" mt={2}>
-                  <Image
-                    src={URL.createObjectURL(formData.image)}
-                    alt="Preview"
-                    boxSize="150px"
-                    objectFit="cover"
-                    borderRadius="md"
-                  />
+                  <Image src={URL.createObjectURL(formData.image)} alt="Preview" boxSize="150px" objectFit="cover" />
+                </Box>
+              )}
+              {!formData.image && formData.imageUrl && (
+                <Box boxSize="150px" mt={2}>
+                  <Image src={formData.imageUrl} alt="Preview" boxSize="150px" objectFit="cover" />
                 </Box>
               )}
             </VStack>
           </ModalBody>
           <ModalFooter>
             <Button onClick={handleSubmit} colorScheme="blue" mr={3}>
-              Submit
+              {editMode ? 'Update' : 'Submit'}
             </Button>
-            <Button variant="ghost" onClick={onClose}>Cancel</Button>
+            <Button variant="ghost" onClick={resetForm}>Cancel</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
 
       {loading ? (
-        <Center>
-          <Spinner size="xl" />
-        </Center>
+        <Center><Spinner size="xl" /></Center>
       ) : (
         <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10}>
+          {/* LOST ITEMS */}
           <VStack align="start" bg="red.50" p={4} borderRadius="md" spacing={4}>
             <Heading size="md">Lost Items</Heading>
             {lostItems.length === 0 && <Text>No lost items reported yet.</Text>}
@@ -191,10 +241,17 @@ export default function LostAndFound() {
                 )}
                 <Text fontWeight="bold">{item.title}</Text>
                 <Text fontSize="sm" color="gray.600">{item.description}</Text>
+                <Button size="sm" mt={2} onClick={() => handleEdit(item, 'lostItems')} colorScheme="blue" mr={2}>
+                  Edit
+                </Button>
+                <Button size="sm" mt={2} onClick={() => handleDelete(item.id, 'lostItems')} colorScheme="red">
+                  Delete
+                </Button>
               </Box>
             ))}
           </VStack>
 
+          {/* FOUND ITEMS */}
           <VStack align="start" bg="green.50" p={4} borderRadius="md" spacing={4}>
             <Heading size="md">Found Items</Heading>
             {foundItems.length === 0 && <Text>No found items reported yet.</Text>}
@@ -205,6 +262,12 @@ export default function LostAndFound() {
                 )}
                 <Text fontWeight="bold">{item.title}</Text>
                 <Text fontSize="sm" color="gray.600">{item.description}</Text>
+                <Button size="sm" mt={2} onClick={() => handleEdit(item, 'foundItems')} colorScheme="blue" mr={2}>
+                  Edit
+                </Button>
+                <Button size="sm" mt={2} onClick={() => handleDelete(item.id, 'foundItems')} colorScheme="red">
+                  Delete
+                </Button>
               </Box>
             ))}
           </VStack>
