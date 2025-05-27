@@ -1,149 +1,206 @@
 import React, { useState, useEffect } from 'react';
 import {
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
   Box,
-  Heading,
-  Text,
-  Button,
-  Stack,
-  SimpleGrid,
   Image,
+  Text,
   VStack,
   HStack,
-  useDisclosure,
+  Input,
+  Textarea,
+  Button,
+  IconButton,
+  Divider,
+  Spinner,
 } from '@chakra-ui/react';
-import { getDocs, collection } from 'firebase/firestore';
-import { db } from '../firebase'; // Adjust the path if needed
-import ReportDetailsModal from '../components/ReportDetails';
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  deleteDoc,
+  doc,
+  updateDoc,
+  serverTimestamp,
+  query,
+  orderBy,
+} from 'firebase/firestore';
+import { db } from '../firebase';
+import { EditIcon, DeleteIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
+import Picker from '@emoji-mart/react';
+import data from '@emoji-mart/data';
 
-const Community = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const [lostItems, setLostItems] = useState([]);
-  const [foundItems, setFoundItems] = useState([]);
+const ReportDetailsModal = ({ isOpen, onClose, report, user }) => {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [showPicker, setShowPicker] = useState(false);
+  const [editMode, setEditMode] = useState(null);
+  const [editText, setEditText] = useState('');
   const [loading, setLoading] = useState(true);
-  const [selectedReport, setSelectedReport] = useState(null);
-
-  const openDetails = (report) => {
-    setSelectedReport(report);
-    onOpen();
-  };
 
   useEffect(() => {
-    const fetchItems = async () => {
-      setLoading(true);
-      try {
-        const lostSnapshot = await getDocs(collection(db, 'lostItems'));
-        const foundSnapshot = await getDocs(collection(db, 'foundItems'));
+    if (!report || !user) return;
 
-        const lostData = lostSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-          status: 'Lost',
-        }));
+    const itemType = report.status === 'Lost' ? 'lostItems' : 'foundItems';
+    const msgRef = collection(db, `${itemType}/${report.id}/messages`);
+    const q = query(msgRef, orderBy('timestamp'));
 
-        const foundData = foundSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-          status: 'Found',
-        }));
-
-        setLostItems(lostData);
-        setFoundItems(foundData);
-      } catch (error) {
-        console.error('Error fetching items:', error);
-      }
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
-    };
+    });
 
-    fetchItems();
-  }, []);
+    return () => unsubscribe();
+  }, [report, user]);
 
-  const allReports = [...lostItems, ...foundItems];
+  const sendMessage = async () => {
+    if (!input.trim() || !report || !user) return;
+
+    const itemType = report.status === 'Lost' ? 'lostItems' : 'foundItems';
+    const msgRef = collection(db, `${itemType}/${report.id}/messages`);
+
+    try {
+      await addDoc(msgRef, {
+        text: input,
+        userId: user.uid,
+        username: user.displayName || user.email,
+        timestamp: serverTimestamp(),
+      });
+      setInput('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
+
+  const deleteMessage = async (id) => {
+    const itemType = report.status === 'Lost' ? 'lostItems' : 'foundItems';
+    try {
+      await deleteDoc(doc(db, `${itemType}/${report.id}/messages`, id));
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+  };
+
+  const updateMessage = async (id) => {
+    const itemType = report.status === 'Lost' ? 'lostItems' : 'foundItems';
+    try {
+      await updateDoc(doc(db, `${itemType}/${report.id}/messages`, id), {
+        text: editText,
+      });
+      setEditMode(null);
+    } catch (error) {
+      console.error('Error updating message:', error);
+    }
+  };
+
+  const addEmoji = (emoji) => {
+    setInput(prev => prev + emoji.native);
+  };
+
+  if (!report || !user) return null;
 
   return (
-    <Box px={8} py={12} bg="gray.50">
-      {/* Header Section */}
-      <VStack spacing={6} textAlign="center">
-        <Heading size="2xl">Join the Community</Heading>
-        <Text fontSize="lg" color="gray.600" maxW="600px">
-          Help reunite people with their lost belongings. Whether you've found something or lost an item, we're here to make connection easier.
-        </Text>
-        <HStack spacing={4}>
-          <Button colorScheme="red" onClick={() => {
-            // Implement reporting form trigger if needed
-          }}>
-            Report Lost Item
-          </Button>
-          <Button colorScheme="green" variant="outline" onClick={() => {
-            // Implement reporting form trigger if needed
-          }}>
-            Report Found Item
-          </Button>
-        </HStack>
-      </VStack>
+    <Modal isOpen={isOpen} onClose={onClose} size="lg" scrollBehavior="inside">
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>{report.title}</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody pb={6}>
+          <VStack spacing={4} align="stretch">
+            {report.imageUrl && (
+              <Image src={report.imageUrl} alt={report.title} borderRadius="md" />
+            )}
+            <Text fontSize="md">{report.description}</Text>
+            <Text fontSize="sm" color="gray.500">
+              Status: {report.status}
+            </Text>
 
-      {/* Reports Section */}
-      <Box mt={12}>
-        <Heading size="lg" mb={6}>Recent Reports</Heading>
+            <Divider mt={4} />
+            <Text fontWeight="bold" fontSize="lg">💬 Messages</Text>
 
-        {loading ? (
-          <Text textAlign="center" color="gray.500">Loading reports...</Text>
-        ) : (
-          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
-            {allReports.map((report) => (
-              <Box
-                key={report.id}
-                bg="white"
-                p={4}
-                shadow="md"
-                borderRadius="md"
-                cursor="pointer"
-                _hover={{ boxShadow: 'lg' }}
-                borderLeft="6px solid"
-                borderColor={report.status === 'Lost' ? 'red.400' : 'green.400'}
-                onClick={() => openDetails(report)}
-              >
-                {report.imageUrl && (
-                  <Image
-                    src={report.imageUrl}
-                    alt={report.title}
-                    objectFit="cover"
-                    w="100%"
-                    h="200px"
-                    borderRadius="md"
-                    mb={4}
-                  />
+            {loading ? (
+              <Spinner />
+            ) : (
+              <VStack align="stretch" spacing={3} mt={2}>
+                {messages.length === 0 ? (
+                  <Text color="gray.500" fontSize="sm">No messages yet.</Text>
+                ) : (
+                  messages.map((msg) => (
+                    <Box key={msg.id} bg="gray.50" p={3} borderRadius="md">
+                      <HStack justify="space-between">
+                        <Text fontWeight="bold">{msg.username}</Text>
+                        {msg.userId === user.uid && (
+                          <HStack spacing={1}>
+                            <IconButton
+                              icon={<EditIcon />}
+                              size="sm"
+                              onClick={() => {
+                                setEditMode(msg.id);
+                                setEditText(msg.text);
+                              }}
+                              aria-label="Edit"
+                            />
+                            <IconButton
+                              icon={<DeleteIcon />}
+                              size="sm"
+                              onClick={() => deleteMessage(msg.id)}
+                              aria-label="Delete"
+                            />
+                          </HStack>
+                        )}
+                      </HStack>
+                      {editMode === msg.id ? (
+                        <HStack mt={2}>
+                          <Input
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                          />
+                          <IconButton
+                            icon={<CheckIcon />}
+                            onClick={() => updateMessage(msg.id)}
+                            aria-label="Save"
+                          />
+                          <IconButton
+                            icon={<CloseIcon />}
+                            onClick={() => setEditMode(null)}
+                            aria-label="Cancel"
+                          />
+                        </HStack>
+                      ) : (
+                        <Text mt={1}>{msg.text}</Text>
+                      )}
+                    </Box>
+                  ))
                 )}
-                <Heading size="md">{report.title}</Heading>
-                <Text fontSize="sm" color="gray.600" mt={2}>
-                  {report.description}
-                </Text>
-                <Text
-                  fontSize="xs"
-                  mt={2}
-                  fontWeight="bold"
-                  color={report.status === 'Lost' ? 'red.500' : 'green.500'}
-                >
-                  Status: {report.status}
-                </Text>
-              </Box>
-            ))}
-          </SimpleGrid>
-        )}
-      </Box>
+              </VStack>
+            )}
 
-      {/* Report Details Modal */}
-      <ReportDetailsModal isOpen={isOpen} onClose={onClose} report={selectedReport} />
-
-      {/* Footer Message */}
-      <Box mt={16} textAlign="center">
-        <Heading size="md" mb={4}>Your Help Matters</Heading>
-        <Text maxW="600px" mx="auto" color="gray.600">
-          Every shared post, every report, every watchful eye counts. Be part of the solution — help others and let others help you.
-        </Text>
-      </Box>
-    </Box>
+            {/* Message Input */}
+            <Box mt={4}>
+              <Textarea
+                placeholder="Type a message..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+              />
+              <HStack mt={2}>
+                <Button colorScheme="blue" onClick={sendMessage}>Send</Button>
+                <Button onClick={() => setShowPicker(!showPicker)}>😀 Emoji</Button>
+              </HStack>
+              {showPicker && (
+                <Box mt={2}>
+                  <Picker data={data} onEmojiSelect={addEmoji} />
+                </Box>
+              )}
+            </Box>
+          </VStack>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
   );
 };
 
-export default Community;
+export default ReportDetailsModal;

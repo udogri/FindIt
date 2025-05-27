@@ -45,7 +45,7 @@ const LoginSignup = () => {
           isClosable: true,
         });
       
-        navigate('/'); // 👈 redirect to home
+        navigate('/home'); // 👈 redirect to home
       } catch (error) {
         console.error('Auth error:', error);
         toast({

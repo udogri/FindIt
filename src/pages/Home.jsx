@@ -60,10 +60,10 @@ const HomePage = () => {
           </Text>
           <Button
             mt={6}
-            colorScheme="whiteAlpha"
+            bg="white"
             variant="outline"
             size="lg"
-            _hover={{ bg: 'whiteAlpha.300' }}
+            _hover={{ bg: 'transparent', color: 'white' }}
             onClick={() => navigate('/lost-and-found')}
           >
             Get Started
@@ -114,9 +114,7 @@ const HomePage = () => {
             Start Making a Difference
           </Heading>
           <Text mb={4}>Post a missing or found item to help others in your area.</Text>
-          <Button colorScheme="teal" size="lg" onClick={() => navigate('/report-lost')}>
-            Report Now
-          </Button>
+          
         </Box>
       </VStack>
     </Box>
