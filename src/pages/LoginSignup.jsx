@@ -1,125 +1,141 @@
-// components/LoginSignup.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  Box,
-  Button,
-  Input,
-  Heading,
-  VStack,
-  Text,
-  useToast,
-  Divider,
+  Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton,
+  ModalBody, ModalFooter, Image, Text, Heading, VStack, Input,
+  Button, Box, HStack
 } from '@chakra-ui/react';
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  updateProfile,
-  signInWithPopup,
-  GoogleAuthProvider,
-} from 'firebase/auth';
-import { auth } from '../firebase'; // Adjust the path if needed
-import { useNavigate } from 'react-router-dom';
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../firebase';
+import { format } from 'date-fns';
 
-const LoginSignup = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
-  const toast = useToast();
-  const navigate = useNavigate();
+const ReportDetailsModal = ({ isOpen, onClose, report }) => {
+  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [user, setUser] = useState(null);
+  const chatEndRef = useRef(null);
 
-  const handleEmailAuth = async () => {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!report?.id) return;
+
+    const q = query(
+      collection(db, 'reports', report.id, 'messages'),
+      orderBy('timestamp', 'asc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setMessages(msgs);
+    });
+
+    return () => unsubscribe();
+  }, [report?.id]);
+
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!input.trim() || !report?.id) return;
+
     try {
-        if (isLogin) {
-          await signInWithEmailAndPassword(auth, email, password);
-        } else {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          await updateProfile(userCredential.user, { displayName: username });
-        }
-      
-        toast({
-          title: 'Success',
-          description: isLogin ? 'Signed in successfully!' : 'Account created successfully!',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
-      
-        navigate('/home'); // 👈 redirect to home
-      } catch (error) {
-        console.error('Auth error:', error);
-        toast({
-          title: 'Authentication Error',
-          description: error.message,
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
-      }
-      
-  };
-
-  const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      toast({ title: 'Signed in with Google', status: 'success' });
-    } catch (error) {
-      toast({
-        title: 'Google Sign-In Error',
-        description: error.message,
-        status: 'error',
-        duration: 5000,
+      await addDoc(collection(db, 'reports', report.id, 'messages'), {
+        text: input.trim(),
+        uid: user?.uid || null,
+        senderName: user?.displayName || 'Anonymous',
+        reportSender: report.sender || 'Unknown',
+        timestamp: serverTimestamp()
       });
+      setInput('');
+    } catch (error) {
+      console.error("Error sending message: ", error);
     }
   };
 
+  if (!isOpen || !report) return null;
+
   return (
-    <Box maxW="md" mx="auto" mt={10} p={6} borderWidth={1} borderRadius="md">
-      <Heading size="lg" mb={4}>
-        {isLogin ? 'Sign In' : 'Sign Up'}
-      </Heading>
-      <VStack spacing={4}>
-        {!isLogin && (
-          <Input
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        )}
-        <Input
-          placeholder="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Input
-          placeholder="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+    <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>{report.title || 'Report Details'}</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <VStack spacing={4} align="start">
+            {report.imageUrl && (
+              <Image
+                src={report.imageUrl}
+                alt={report.title || 'Report Image'}
+                objectFit="cover"
+                w="100%"
+                h="250px"
+                borderRadius="md"
+              />
+            )}
+            <Text fontSize="sm" color="gray.600">
+              {report.description || 'No description provided.'}
+            </Text>
+            <Text fontWeight="bold" color={report.status === 'Lost' ? 'red.500' : 'green.500'}>
+              Status: {report.status}
+            </Text>
 
-        <Button colorScheme="teal" w="full"  onClick={handleEmailAuth}>
-          {isLogin ? 'Sign In' : 'Sign Up'}
-        </Button>
+            <Box w="100%" mt={6}>
+              <Heading size="sm" mb={2}>Chat</Heading>
+              <Box
+                bg="gray.100"
+                borderRadius="md"
+                p={3}
+                h="200px"
+                overflowY="auto"
+                mb={3}
+                maxW="100%"
+              >
+                {messages.map((msg) => (
+                  <Box key={msg.id} mb={2}>
+                    <Text fontSize="sm" fontWeight="bold" color={msg.uid === user?.uid ? 'blue.600' : 'gray.800'}>
+                      {msg.senderName || 'Unknown'} <Text as="span" fontSize="xs" color="gray.500">
+                        {msg.timestamp?.toDate ? format(msg.timestamp.toDate(), 'p, MMM d') : '...'}
+                      </Text>
+                    </Text>
+                    <Text fontSize="sm" ml={2}>
+                      {msg.text}
+                    </Text>
+                  </Box>
+                ))}
+                <div ref={chatEndRef} />
+              </Box>
+              <HStack>
+                <Input
+                  placeholder="Type a message with emoji… 😊"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                />
+                <Button colorScheme="teal" onClick={handleSend}>
+                  Send
+                </Button>
+              </HStack>
+            </Box>
+          </VStack>
+        </ModalBody>
 
-        <Divider />
-
-        <Button colorScheme="red" w="full" onClick={handleGoogleSignIn}>
-          Continue with Google
-        </Button>
-
-        <Text fontSize="sm" color="gray.600">
-          {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
-          <Button variant="link" colorScheme="blue" onClick={() => setIsLogin(!isLogin)}>
-            {isLogin ? 'Sign Up' : 'Sign In'}
+        <ModalFooter>
+          <Button variant="ghost" onClick={onClose}>
+            Close
           </Button>
-        </Text>
-      </VStack>
-    </Box>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 };
 
-export default LoginSignup;
-// components/LoginSignup.jsx   
+export default ReportDetailsModal;
