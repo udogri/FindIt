@@ -4,7 +4,7 @@ import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons';
 import { Link as RouterLink } from 'react-router-dom';
 
 const Links = [
-  { name: 'Home', path: '/' },
+  { name: 'Home', path: '/home' },
   { name: 'Lost & Found', path: '/lost-and-found' },
   { name: 'Community', path: '/community' },
 ];

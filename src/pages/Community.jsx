@@ -71,10 +71,7 @@ const Community = () => {
         <Text fontSize="lg" color="gray.600" maxW="600px">
           Help reunite people with their lost belongings. Whether you've found something or lost an item, we're here to make connection easier.
         </Text>
-        <HStack spacing={4}>
-          <Button colorScheme="red">Report Lost Item</Button>
-          <Button colorScheme="green" variant="outline">Report Found Item</Button>
-        </HStack>
+        
       </VStack>
 
       <Box mt={12}>
