@@ -1,141 +1,111 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
-  Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton,
-  ModalBody, ModalFooter, Image, Text, Heading, VStack, Input,
-  Button, Box, HStack
+  Box,
+  Button,
+  Input,
+  Heading,
+  VStack,
+  useToast,
+  FormControl,
+  FormLabel,
 } from '@chakra-ui/react';
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '../firebase';
-import { format } from 'date-fns';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from 'firebase/auth';
+import { auth } from '../firebase';
+import { useNavigate } from 'react-router-dom';
 
-const ReportDetailsModal = ({ isOpen, onClose, report }) => {
-  const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([]);
-  const [user, setUser] = useState(null);
-  const chatEndRef = useRef(null);
+const LoginSignup = () => {
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignup, setIsSignup] = useState(true);
+  const toast = useToast();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (!report?.id) return;
-
-    const q = query(
-      collection(db, 'reports', report.id, 'messages'),
-      orderBy('timestamp', 'asc')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setMessages(msgs);
-    });
-
-    return () => unsubscribe();
-  }, [report?.id]);
-
-  useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages]);
-
-  const handleSend = async () => {
-    if (!input.trim() || !report?.id) return;
-
+  const handleSubmit = async () => {
     try {
-      await addDoc(collection(db, 'reports', report.id, 'messages'), {
-        text: input.trim(),
-        uid: user?.uid || null,
-        senderName: user?.displayName || 'Anonymous',
-        reportSender: report.sender || 'Unknown',
-        timestamp: serverTimestamp()
-      });
-      setInput('');
+      if (isSignup) {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: username });
+
+        toast({
+          title: 'Account created successfully.',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+
+        toast({
+          title: 'Logged in successfully.',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+          position: 'top',
+        });
+      }
+      navigate('/home');
     } catch (error) {
-      console.error("Error sending message: ", error);
+      toast({
+        title: 'Error',
+        description: error.message,
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+      });
     }
   };
 
-  if (!isOpen || !report) return null;
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>{report.title || 'Report Details'}</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <VStack spacing={4} align="start">
-            {report.imageUrl && (
-              <Image
-                src={report.imageUrl}
-                alt={report.title || 'Report Image'}
-                objectFit="cover"
-                w="100%"
-                h="250px"
-                borderRadius="md"
-              />
-            )}
-            <Text fontSize="sm" color="gray.600">
-              {report.description || 'No description provided.'}
-            </Text>
-            <Text fontWeight="bold" color={report.status === 'Lost' ? 'red.500' : 'green.500'}>
-              Status: {report.status}
-            </Text>
+    <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="gray.50">
+      <VStack spacing={4} p={6} boxShadow="md" bg="white" borderRadius="md" width="sm">
+        <Heading>{isSignup ? 'Sign Up' : 'Log In'}</Heading>
 
-            <Box w="100%" mt={6}>
-              <Heading size="sm" mb={2}>Chat</Heading>
-              <Box
-                bg="gray.100"
-                borderRadius="md"
-                p={3}
-                h="200px"
-                overflowY="auto"
-                mb={3}
-                maxW="100%"
-              >
-                {messages.map((msg) => (
-                  <Box key={msg.id} mb={2}>
-                    <Text fontSize="sm" fontWeight="bold" color={msg.uid === user?.uid ? 'blue.600' : 'gray.800'}>
-                      {msg.senderName || 'Unknown'} <Text as="span" fontSize="xs" color="gray.500">
-                        {msg.timestamp?.toDate ? format(msg.timestamp.toDate(), 'p, MMM d') : '...'}
-                      </Text>
-                    </Text>
-                    <Text fontSize="sm" ml={2}>
-                      {msg.text}
-                    </Text>
-                  </Box>
-                ))}
-                <div ref={chatEndRef} />
-              </Box>
-              <HStack>
-                <Input
-                  placeholder="Type a message with emoji… 😊"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                />
-                <Button colorScheme="teal" onClick={handleSend}>
-                  Send
-                </Button>
-              </HStack>
-            </Box>
-          </VStack>
-        </ModalBody>
+        {isSignup && (
+          <FormControl>
+            <FormLabel>Username</FormLabel>
+            <Input
+              placeholder="Enter username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </FormControl>
+        )}
 
-        <ModalFooter>
-          <Button variant="ghost" onClick={onClose}>
-            Close
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+        <FormControl>
+          <FormLabel>Email</FormLabel>
+          <Input
+            placeholder="Enter email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>Password</FormLabel>
+          <Input
+            placeholder="Enter password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </FormControl>
+
+        <Button colorScheme="blue" width="full" onClick={handleSubmit}>
+          {isSignup ? 'Sign Up' : 'Log In'}
+        </Button>
+
+        <Button variant="link" onClick={() => setIsSignup(!isSignup)}>
+          {isSignup ? 'Already have an account? Log in' : 'No account? Sign up'}
+        </Button>
+      </VStack>
+    </Box>
   );
 };
 
-export default ReportDetailsModal;
+export default LoginSignup;
