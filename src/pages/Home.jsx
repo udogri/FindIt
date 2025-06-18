@@ -47,7 +47,7 @@ const HomePage = () => {
           textAlign="center"
           py={10}
           px={6}
-          bgGradient="linear(to-r, teal.400, teal.600)"
+          bg="#34495e"
           color="white"
           borderRadius="lg"
         >
