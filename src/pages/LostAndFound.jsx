@@ -130,7 +130,9 @@ export default function LostAndFound() {
   };
 
   const handleSubmit = async () => {
+    setLoading(true);
     if (!formData.title || !formData.description) {
+      setLoading(false);
       toast({
         title: 'Missing fields.',
         description: 'Please fill in the title and description.',
@@ -142,6 +144,7 @@ export default function LostAndFound() {
     }
 
     if (!currentUser) {
+      setLoading(false);
       toast({
         title: 'Unauthorized',
         description: 'You must be logged in to submit a report.',
@@ -196,6 +199,7 @@ export default function LostAndFound() {
       resetForm();
       await fetchItems();
     } catch (error) {
+      setLoading(false);
       console.error('Error submitting item:', error);
       toast({
         title: 'Submission failed',
@@ -208,7 +212,9 @@ export default function LostAndFound() {
   };
 
   const handleEdit = (item, collectionName) => {
+    // setLoading(true);
     if (!currentUser || item.userId !== currentUser.uid) {
+      setLoading(false);
       toast({
         title: 'Permission denied.',
         description: 'You can only edit your own items.',
@@ -235,11 +241,9 @@ export default function LostAndFound() {
 
 
   const handleDelete = (id, collectionName, userId) => {
-    setLoading(true);
     console.log("Delete clicked");
 
     if (!currentUser || userId !== currentUser.uid) {
-      setLoading(false);
       toast({
         title: 'Permission denied.',
         description: 'You can only delete your own items.',
@@ -249,11 +253,46 @@ export default function LostAndFound() {
       });
       return;
     } 
+    
 
     setPendingDelete({ id, collectionName, userId });
     openDeleteModal(); // opens modal
     
   };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+  
+    setLoading(true);
+    try {
+      await deleteDoc(doc(db, pendingDelete.collectionName, pendingDelete.id));
+      await fetchItems();
+      setLoading(false);
+
+      toast({
+        title: 'Item deleted.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      setLoading(false);
+
+      console.error('Error deleting item:', error);
+      toast({
+        title: 'Delete failed',
+        description: 'Something went wrong.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      closeDeleteModal();
+      setPendingDelete(null);
+      setLoading(false);
+    }
+  };
+  
 
 
   const resetForm = () => {
@@ -345,7 +384,7 @@ export default function LostAndFound() {
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button onClick={handleSubmit} colorScheme="blue" mr={3}>
+            <Button onClick={handleSubmit} colorScheme="blue" isLoading={loading} mr={3}>
               {editMode ? 'Update' : 'Submit'}
             </Button>
             <Button variant="ghost" onClick={resetForm}>
@@ -588,26 +627,8 @@ export default function LostAndFound() {
                   </Button>
                   <Button
                     colorScheme="red"
-                    loading={loading} // 🛠️ Show loading state
-                    onClick={async () => {
-                      try {
-                        await deleteDoc(doc(db, pendingDelete.collectionName, pendingDelete.id));
-                        await fetchItems();
-                        toast({ title: 'Item deleted.', status: 'success', duration: 3000, isClosable: true });
-                      } catch (error) {
-                        console.error('Error deleting item:', error);
-                        toast({
-                          title: 'Delete failed',
-                          description: 'Something went wrong.',
-                          status: 'error',
-                          duration: 3000,
-                          isClosable: true,
-                        });
-                      } finally {
-                        closeDeleteModal(); // ✅ this was the issue
-                        setPendingDelete(null);
-                      }
-                    }}
+                    isLoading={loading} // 🛠️ Show loading state
+                    onClick={confirmDelete}
                     ml={3}
                   >
                     Delete
