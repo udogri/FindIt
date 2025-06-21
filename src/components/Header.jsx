@@ -25,7 +25,7 @@ const NavLink = ({ name, path, onClose }) => (
     px={2}
     py={1}
     rounded="md"
-    _hover={{ textDecoration: 'underline' }}
+    _hover={{ bg: '#3c5a70' }}
     onClick={onClose}
   >
     {name}
@@ -57,7 +57,6 @@ export default function Header() {
           onClick={isOpen ? onClose : onOpen}
         />
         <HStack
-          spacing={8}
           color="white"
           fontWeight="600"
           background="#34495e"

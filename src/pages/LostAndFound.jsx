@@ -314,6 +314,7 @@ export default function LostAndFound() {
         background="#34495e"
         color="white"
         mb={8}
+        _hover={{ bg: '#3c5a70' }}
         onClick={() => {
           resetForm();
           openFormModal();

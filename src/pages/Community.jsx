@@ -23,6 +23,8 @@ const Community = () => {
   const [foundItems, setFoundItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState(null);
+  const [allReports, setAllReports] = useState([]);
+
 
   const openDetails = (report) => {
     if (report) {
@@ -37,32 +39,40 @@ const Community = () => {
       try {
         const lostSnapshot = await getDocs(collection(db, 'lostItems'));
         const foundSnapshot = await getDocs(collection(db, 'foundItems'));
-
+  
         const lostData = lostSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
           status: 'Lost',
         }));
-
+  
         const foundData = foundSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
           status: 'Found',
         }));
-
+  
+        // ✅ Combine and sort by createdAt (latest first)
+        const combined = [...lostData, ...foundData].sort((a, b) => {
+          const dateA = a.createdAt?.toDate?.() || new Date(0); // fallback to epoch if missing
+          const dateB = b.createdAt?.toDate?.() || new Date(0);
+          return dateB - dateA;
+        });
+  
         setLostItems(lostData);
         setFoundItems(foundData);
+        setAllReports(combined); // ✅ store sorted reports
       } catch (error) {
         console.error('Error fetching items:', error);
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchItems();
   }, []);
+  
 
-  const allReports = [...lostItems, ...foundItems];
 
   return (
     <Box px={8} py={12} bg="gray.50">
