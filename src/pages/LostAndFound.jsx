@@ -308,7 +308,7 @@ export default function LostAndFound() {
       <Heading mb={4} fontSize="50px">
         Lost & Found - My Reports
       </Heading>
-      <Text mb={8}>Browse or report lost and found items in your community.</Text>
+      <Text mb={8}>Report lost and found items in your community.</Text>
 
       <Button
         background="#34495e"
