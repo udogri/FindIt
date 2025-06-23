@@ -1,7 +1,7 @@
 // src/pages/LandingPage.jsx
 import { Box, VStack, Text, Button, Stack, Flex } from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import LandingPageImage from '../assets/LandingPageImage.jpg';
+import LandingPageImage from '../Assets/LandingPageImage.jpg';
 
 export default function LandingPage() {
   const navigate = useNavigate();
