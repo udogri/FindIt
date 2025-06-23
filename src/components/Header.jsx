@@ -107,7 +107,6 @@ export default function Header() {
           position="absolute"
           bg="#34495e"
           top="63px"
-          bg="#34495e"
           zIndex="10"
           left="0"
           w="100%"
