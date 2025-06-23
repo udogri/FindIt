@@ -35,6 +35,7 @@ export default function LandingPage() {
         bgPosition="center"
         bgRepeat="no-repeat"
         bgSize="cover"
+        minHeight="100vh"
         color="white"
       >
         <Text fontSize={{ base: "30px", md: "50px" }} fontWeight="600">
@@ -99,7 +100,7 @@ export default function LandingPage() {
       </Flex>
 
       {/* Impact Section */}
-      <Box bg="#091C13" textAlign="center" py="80px" px={{ base: "30px", md: "60px" }} color="white">
+      <Box bg="#1f2832" textAlign="center" py="80px" px={{ base: "30px", md: "60px" }} color="white">
         <Box display={{ base: "grid", md: "flex" }} justifyContent="center" alignItems="center">
           <Text
             fontSize={{ base: "20px", md: "30px", lg: "50px" }}
@@ -123,7 +124,7 @@ export default function LandingPage() {
                 <VStack
                   key={idx}
                   borderRadius="15px"
-                  borderLeft="3px solid #39996B29"
+                  borderLeft="3px solid #27333f"
                   p="30px"
                   mb={{ base: "20px", md: "0" }}
                 >

@@ -62,6 +62,7 @@ const LoginSignup = () => {
 
   return (
     <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="gray.50">
+    {/* <text>FindIt</text> */}
       <VStack spacing={4} p={6} boxShadow="md" bg="white" borderRadius="md" width="sm">
         <Heading>{isSignup ? 'Sign Up' : 'Log In'}</Heading>
 

@@ -11,7 +11,7 @@ import LoginSignup from './pages/LoginSignup';
 
 function App() {
   const location = useLocation();
-  const hideHeaderRoutes = ['/']; // Add other routes if you want to hide header elsewhere too
+  const hideHeaderRoutes = ['/', '/login/signup' ]; // Add other routes if you want to hide header elsewhere too
 
   return (
     <Flex direction="column" minHeight="100vh">
