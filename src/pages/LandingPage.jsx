@@ -1,7 +1,10 @@
 // src/pages/LandingPage.jsx
-import { Box, VStack, Text, Button, Stack, Flex } from '@chakra-ui/react';
+import { Box, VStack, Text, Button, Stack, Flex, SimpleGrid, HStack } from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import LandingPageImage from '../Assets/LandingPageImage.jpg';
+import { Input, Textarea, FormControl, FormLabel, IconButton } from '@chakra-ui/react';
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
+
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -13,9 +16,9 @@ export default function LandingPage() {
         <Box color="white" fontWeight="bold" fontSize="lg">FindIt</Box>
         <Button
           
-          onClick={() => navigate('/login/signup')}          color="white"
-          background="#FAA51C"
-          _hover={{ bg: "white", color: "#34495e" }}
+          onClick={() => navigate('/login/signup')}          color="#34495e"
+          background="#FFFF"
+          _hover={{ bg: "grey", color: "#FFFF" }}
           fontWeight="500"
           fontSize="sm"
         >
@@ -139,7 +142,124 @@ export default function LandingPage() {
             </Flex>
           </Box>
         </Box>
+
+
       </Box>
+      <Box py="80px" px={{ base: "30px", md: "60px" }} bg="gray.100">
+  <Text textAlign="center" fontSize={{ base: "25px", md: "40px" }} fontWeight="700" mb={10}>
+    What Our Users Say
+  </Text>
+  <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
+    {[
+      {
+        name: 'Chidera U.',
+        text: "I found my lost phone through FindIt in just 2 days. Unbelievable! I'm so grateful."
+      },
+      {
+        name: 'Musa B.',
+        text: "Returned a found wallet through this app. The joy on the owner's face was priceless!"
+      },
+      {
+        name: 'Fatima L.',
+        text: "Simple, fast, and effective. I always check here first when something’s lost."
+      }
+    ].map((testimonial, idx) => (
+      <Box key={idx} bg="white" p={6} borderRadius="md" boxShadow="md">
+        <Text fontSize="md" color="gray.700" mb={4}>"{testimonial.text}"</Text>
+        <Text fontWeight="bold" color="#34495e">{testimonial.name}</Text>
+      </Box>
+    ))}
+  </SimpleGrid>
+</Box>
+
+{/* Call to Action Section */}
+<Box bg="#27333f" color="white" py="60px" px={{ base: "20px", md: "40px" }} textAlign="center">
+  <Text fontSize={{ base: "24px", md: "40px" }} fontWeight="bold" mb={6}>
+    Help us reunite more people with their lost items
+  </Text>
+  <Text fontSize="lg" mb={8}>
+    Your small action can make a big difference. Join the FindIt community today!
+  </Text>
+  <Button
+    as={RouterLink}
+    to="/login/signup"
+    size="lg"
+    bg="#FFFF"
+    color="#34495e"
+    fontWeight="bold"
+    _hover={{ bg: "grey", color: "#FFFF" }}
+  >
+    Get Started
+  </Button>
+</Box>
+
+{/* Contact Us Section */}
+{/* Contact Us Section */}
+<Box py="60px" px={{ base: "30px", md: "80px" }} bg="gray.50" textAlign="center">
+  <Text fontSize={{ base: "25px", md: "35px" }} fontWeight="bold" mb={10}>
+    Contact Us
+  </Text>
+
+  <Stack
+    direction={{ base: "column", md: "row" }}
+    spacing={10}
+    justify="center"
+    align="center"
+    maxW="1000px"
+    mx="auto"
+    textAlign="left"
+  >
+    {/* Contact Form */}
+    <Box flex="1" minW={{ base: "100%", md: "400px" }}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          alert("Message sent successfully!");
+        }}
+      >
+        <FormControl isRequired mb={4}>
+          <FormLabel>Name</FormLabel>
+          <Input placeholder="Your name" />
+        </FormControl>
+
+        <FormControl isRequired mb={4}>
+          <FormLabel>Email</FormLabel>
+          <Input type="email" placeholder="Your email" />
+        </FormControl>
+
+        <FormControl isRequired mb={4}>
+          <FormLabel>Message</FormLabel>
+          <Textarea placeholder="Your message" />
+        </FormControl>
+
+        <Button
+          type="submit"
+          bg="#34495e"
+          color="white"
+          _hover={{ bg: "#2c3e50" }}
+          w="full"
+        >
+          Send Message
+        </Button>
+      </form>
+    </Box>
+
+    {/* Social Media */}
+    <Box flex="1" minW={{ base: "100%", md: "300px" }} textAlign="center">
+      <Text fontWeight="bold" mb={4}>
+        Connect with us:
+      </Text>
+      <HStack spacing={4} justify="center">
+        <IconButton as="a" href="https://facebook.com" icon={<FaFacebook />} aria-label="Facebook" variant="ghost" />
+        <IconButton as="a" href="https://twitter.com" icon={<FaTwitter />} aria-label="Twitter" variant="ghost" />
+        <IconButton as="a" href="https://instagram.com" icon={<FaInstagram />} aria-label="Instagram" variant="ghost" />
+        <IconButton as="a" href="https://linkedin.com" icon={<FaLinkedin />} aria-label="LinkedIn" variant="ghost" />
+      </HStack>
+    </Box>
+  </Stack>
+</Box>
+
+
     </Box>
   );
 }
