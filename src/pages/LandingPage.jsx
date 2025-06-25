@@ -3,6 +3,7 @@ import { Box, VStack, Text, Button, Stack, Flex, SimpleGrid, HStack, Img } from 
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import LandingPageImage from '../Assets/LandingPageImage.jpg';
 import LostItem from '../Assets/LostItem.png';
+import lostBag from '../Assets/lostBag.webp';
 import { Input, Textarea, FormControl, FormLabel, IconButton } from '@chakra-ui/react';
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
 
@@ -203,7 +204,10 @@ export default function LandingPage() {
 </Box>
 
 {/* Call to Action Section */}
-<Box bg="#27333f" minH="100vh" color="white" py="60px" px={{ base: "20px", md: "40px" }} alignContent="center" textAlign="center">
+<Box bg="#27333f" minH="100vh" color="white" py="60px" px={{ base: "20px", md: "40px" }} alignContent="center" textAlign="center" bgImage={`linear-gradient(to right, rgba(0, 0, 0, 0.5) 0%, rgba(41, 41, 41, 0.75) 80%), url(${lostBag})`}
+        bgPosition="center"
+        bgRepeat="no-repeat"
+        bgSize="cover">
   <Text fontSize={{ base: "24px", md: "40px" }} fontWeight="bold" mb={6}>
     Help us reunite more people with their lost items
   </Text>
