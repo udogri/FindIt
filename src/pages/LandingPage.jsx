@@ -70,9 +70,12 @@ export default function LandingPage() {
   py={{ base: 10, md: 20 }}
   gap={{ base: 10, md: 16 }}
   bg="white"
+  minH="100vh"
+
 >
   {/* Left: Text Content */}
   <Stack
+  justify="center"
     spacing={6}
     maxW={{ base: "100%", md: "50%" }}
     align={{ base: "center", md: "flex-start" }}
@@ -82,7 +85,7 @@ export default function LandingPage() {
       about FindIt
     </Text>
 
-    <Text fontSize={{ base: "28px", md: "50px" }} fontWeight="600" color="black" lineHeight="1.2">
+    <Text fontSize={{ base: "28px", md: "40px" }} fontWeight="600" color="black" lineHeight="1.2">
       Helping you find{" "}
       <Text as="span" color="#8C9492">
         your lost items
@@ -99,26 +102,11 @@ export default function LandingPage() {
       people in need with those who can help.
     </Text>
 
-    <Button
-      w={{ base: "full", sm: "fit-content" }}
-      bg="#34495e"
-      fontWeight="400"
-      fontSize={{ base: "14px", md: "16px" }}
-      px="28px"
-      py="10px"
-      color="white"
-      _hover={{
-        bg: "transparent",
-        color: "#34495e",
-        border: "1px solid #34495e",
-      }}
-    >
-      Learn more about us
-    </Button>
+    
   </Stack>
 
   {/* Right: Image */}
-  <Box w={{ base: "100%", md: "45%" }} textAlign="center">
+  <Box w={{ base: "100%", md: "80%" }} textAlign="center">
     <Img
       src={LostItem}
       alt="Lost Item Box"
@@ -126,6 +114,7 @@ export default function LandingPage() {
       h="auto"
       mx="auto"
       objectFit="contain"
+
     />
   </Box>
 </Flex>
@@ -183,8 +172,8 @@ export default function LandingPage() {
   <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
     {[
       {
-        name: 'Chidera U.',
-        text: "I found my lost phone through FindIt in just 2 days. Unbelievable! I'm so grateful."
+        name: 'Ibenye J.',
+        text: "I found my lost Dog through FindIt in just 2 days. Unbelievable! I'm so grateful."
       },
       {
         name: 'Musa B.',
