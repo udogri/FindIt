@@ -1,7 +1,8 @@
 // src/pages/LandingPage.jsx
-import { Box, VStack, Text, Button, Stack, Flex, SimpleGrid, HStack } from '@chakra-ui/react';
+import { Box, VStack, Text, Button, Stack, Flex, SimpleGrid, HStack, Img } from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import LandingPageImage from '../Assets/LandingPageImage.jpg';
+import LostItem from '../Assets/LostItem.png';
 import { Input, Textarea, FormControl, FormLabel, IconButton } from '@chakra-ui/react';
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
 
@@ -61,46 +62,75 @@ export default function LandingPage() {
 
       {/* About Section */}
       <Flex
-        direction={{ base: 'column', md: 'row' }}
-        align="left"
-        justify="left"
-        gap={10}
-        px={8}
-        py={20}
-        bg="white"
-        color="white"
-      >
-        <Stack maxW="661px" align="left" textAlign="left">
-          <Text fontSize="15px" w="fit-content" color="#FAA51C" fontWeight="700">
-            about FindIt
-          </Text>
-          <Text fontSize={{ base: "25px", md: "50px" }} fontWeight="600" color="black">
-            Helping you find{" "}
-            <Text as="span" color="#8C9492">
-              your lost items
-            </Text>
-          </Text>
-          <Text fontSize={{ base: "10px", md: "17px" }} color="#71717A" w={{ base: "300px", md: "500px" }}>
-            FindIt is a community-driven platform dedicated to helping people find lost items and return
-            found belongings. Whether it's a misplaced phone, a lost pet, or a found wallet, FindIt
-            connects people in need with those who can help.
-          </Text>
-          <Flex>
-            <Button
-              w={{ base: "150px", md: "171px" }}
-              bg="#34495e"
-              fontWeight="400"
-              fontSize={{ base: "12px", md: "14px" }}
-              px="28px"
-              py="10px"
-              color="white"
-              _hover={{ bg: "transparent", color: "#34495e", border: "1px solid #34495e" }}
-            >
-              Learn more about us
-            </Button>
-          </Flex>
-        </Stack>
-      </Flex>
+  direction={{ base: "column-reverse", md: "row" }}
+  align="center"
+  justify="space-between"
+  px={{ base: 6, md: 16 }}
+  py={{ base: 10, md: 20 }}
+  gap={{ base: 10, md: 16 }}
+  bg="white"
+>
+  {/* Left: Text Content */}
+  <Stack
+    spacing={6}
+    maxW={{ base: "100%", md: "50%" }}
+    align={{ base: "center", md: "flex-start" }}
+    textAlign={{ base: "center", md: "left" }}
+  >
+    <Text fontSize="15px" color="#FAA51C" fontWeight="700">
+      about FindIt
+    </Text>
+
+    <Text fontSize={{ base: "28px", md: "50px" }} fontWeight="600" color="black" lineHeight="1.2">
+      Helping you find{" "}
+      <Text as="span" color="#8C9492">
+        your lost items
+      </Text>
+    </Text>
+
+    <Text
+      fontSize={{ base: "15px", md: "17px" }}
+      color="#71717A"
+      maxW={{ base: "100%", sm: "400px", md: "500px" }}
+    >
+      FindIt is a community-driven platform dedicated to helping people find lost items and return
+      found belongings. Whether it's a misplaced phone, a lost pet, or a found wallet, FindIt connects
+      people in need with those who can help.
+    </Text>
+
+    <Button
+      w={{ base: "full", sm: "fit-content" }}
+      bg="#34495e"
+      fontWeight="400"
+      fontSize={{ base: "14px", md: "16px" }}
+      px="28px"
+      py="10px"
+      color="white"
+      _hover={{
+        bg: "transparent",
+        color: "#34495e",
+        border: "1px solid #34495e",
+      }}
+    >
+      Learn more about us
+    </Button>
+  </Stack>
+
+  {/* Right: Image */}
+  <Box w={{ base: "100%", md: "45%" }} textAlign="center">
+    <Img
+      src={LostItem}
+      alt="Lost Item Box"
+      maxW="100%"
+      h="auto"
+      mx="auto"
+      objectFit="contain"
+    />
+  </Box>
+</Flex>
+
+
+
 
       {/* Impact Section */}
       <Box bg="#1f2832" textAlign="center" py="80px" px={{ base: "30px", md: "60px" }} color="white">
@@ -173,7 +203,7 @@ export default function LandingPage() {
 </Box>
 
 {/* Call to Action Section */}
-<Box bg="#27333f" color="white" py="60px" px={{ base: "20px", md: "40px" }} textAlign="center">
+<Box bg="#27333f" minH="100vh" color="white" py="60px" px={{ base: "20px", md: "40px" }} alignContent="center" textAlign="center">
   <Text fontSize={{ base: "24px", md: "40px" }} fontWeight="bold" mb={6}>
     Help us reunite more people with their lost items
   </Text>
