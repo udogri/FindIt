@@ -70,7 +70,6 @@ export default function LandingPage() {
   py={{ base: 10, md: 20 }}
   gap={{ base: 10, md: 16 }}
   bg="white"
-  minH="100vh"
 
 >
   {/* Left: Text Content */}
