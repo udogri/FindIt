@@ -215,16 +215,15 @@ export default function LandingPage() {
     Your small action can make a big difference. Join the FindIt community today!
   </Text>
   <Button
-    as={RouterLink}
-    to="/login/signup"
-    size="lg"
-    bg="#FFFF"
-    color="#34495e"
-    fontWeight="bold"
-    _hover={{ bg: "grey", color: "#FFFF" }}
-  >
-    Get Started
-  </Button>
+          as={RouterLink}
+          to="/login/signup"
+          color="white"
+          background="#34495e"
+          _hover={{ bg: "transparent", color: "white", border: "1px solid white" }}
+          size="lg"
+        >
+          Get Started
+        </Button>
 </Box>
 
 {/* Contact Us Section */}
