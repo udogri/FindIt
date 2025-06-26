@@ -36,6 +36,7 @@ const LoginSignup = () => {
           status: 'success',
           duration: 3000,
           isClosable: true,
+          position: 'top',
         });
       } else {
         await signInWithEmailAndPassword(auth, email, password);
@@ -56,6 +57,7 @@ const LoginSignup = () => {
         status: 'error',
         duration: 4000,
         isClosable: true,
+        position: 'top',
       });
     }
   };

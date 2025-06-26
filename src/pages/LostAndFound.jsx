@@ -139,6 +139,7 @@ export default function LostAndFound() {
         status: 'warning',
         duration: 3000,
         isClosable: true,
+        position: 'top',
       });
       return;
     }
@@ -151,6 +152,7 @@ export default function LostAndFound() {
         status: 'error',
         duration: 3000,
         isClosable: true,
+        position: 'top',
       });
       return;
     }
@@ -207,6 +209,7 @@ export default function LostAndFound() {
         status: 'error',
         duration: 4000,
         isClosable: true,
+        position: 'top',
       });
     }
   };
@@ -221,6 +224,7 @@ export default function LostAndFound() {
         status: 'error',
         duration: 3000,
         isClosable: true,
+        position: 'top',
       });
       return;
     }
@@ -250,6 +254,7 @@ export default function LostAndFound() {
         status: 'error',
         duration: 3000,
         isClosable: true,
+        position: 'top',
       });
       return;
     } 
@@ -274,6 +279,7 @@ export default function LostAndFound() {
         status: 'success',
         duration: 3000,
         isClosable: true,
+        position: 'top',
       });
     } catch (error) {
       setLoading(false);
@@ -285,6 +291,7 @@ export default function LostAndFound() {
         status: 'error',
         duration: 3000,
         isClosable: true,
+        position: 'top',
       });
     } finally {
       closeDeleteModal();
