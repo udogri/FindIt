@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton,
   ModalBody, ModalFooter, Image, Text, Heading, VStack, Input,
-  Button, Box, HStack, IconButton
+  Button, Box, HStack, IconButton, useDisclosure, Popover, PopoverTrigger, PopoverContent
 } from '@chakra-ui/react';
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase'; // your firebase config file
+import { auth, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { format } from 'date-fns';
-import { EditIcon, DeleteIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
+import { EditIcon, DeleteIcon, CheckIcon, CloseIcon, RepeatIcon, AddIcon } from '@chakra-ui/icons';
+import EmojiPicker from 'emoji-picker-react';
 
 const ReportDetailsModal = ({ isOpen, onClose, report }) => {
   const [input, setInput] = useState('');
@@ -16,9 +17,11 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
   const [user, setUser] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editingText, setEditingText] = useState('');
+  const [replyTo, setReplyTo] = useState(null);
+  const [showEmoji, setShowEmoji] = useState(false);
   const chatEndRef = useRef(null);
+  const inputRef = useRef(null);
 
-  // Listen to auth changes and set current user
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -26,7 +29,6 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
     return () => unsubscribe();
   }, []);
 
-  // Subscribe to messages for this report
   useEffect(() => {
     if (!report?.id) return;
 
@@ -41,14 +43,12 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
     return () => unsubscribe();
   }, [report?.id]);
 
-  // Scroll chat to bottom on new messages
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
-  // Send a new message
   const handleSend = async () => {
     if (!input.trim() || !report?.id || !user) return;
 
@@ -58,15 +58,17 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
         uid: user.uid,
         senderName: user.displayName || user.email || 'Anonymous',
         reportSender: report.sender || 'Unknown',
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
+        replyTo: replyTo ? replyTo.text : null,
+        replySender: replyTo ? replyTo.senderName : null
       });
       setInput('');
+      setReplyTo(null);
     } catch (error) {
       console.error('Error sending message:', error);
     }
   };
 
-  // Delete message by id
   const handleDelete = async (id) => {
     try {
       await deleteDoc(doc(db, 'reports', report.id, 'messages', id));
@@ -75,19 +77,16 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
     }
   };
 
-  // Start editing a message
   const startEditing = (id, text) => {
     setEditingId(id);
     setEditingText(text);
   };
 
-  // Cancel editing
   const cancelEditing = () => {
     setEditingId(null);
     setEditingText('');
   };
 
-  // Save edited message
   const saveEdit = async () => {
     if (!editingText.trim()) return;
 
@@ -95,7 +94,7 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
       const messageRef = doc(db, 'reports', report.id, 'messages', editingId);
       await updateDoc(messageRef, {
         text: editingText.trim(),
-        timestamp: serverTimestamp() // Optional: update timestamp on edit
+        timestamp: serverTimestamp()
       });
       setEditingId(null);
       setEditingText('');
@@ -104,10 +103,16 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
     }
   };
 
+  const onEmojiClick = (emojiData) => {
+    setInput((prev) => prev + emojiData.emoji);
+    setShowEmoji(false);
+    inputRef.current?.focus();
+  };
+
   if (!isOpen || !report) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
+    <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered scrollBehavior="inside">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>{report.title || 'Report Details'}</ModalHeader>
@@ -134,10 +139,10 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
             <Box w="100%" mt={6}>
               <Heading size="sm" mb={2}>Chat</Heading>
               <Box
-                bg="gray.100"
-                borderRadius="md"
+                bg="gray.50"
+                borderRadius="lg"
                 p={3}
-                h="200px"
+                h="250px"
                 overflowY="auto"
                 mb={3}
               >
@@ -147,58 +152,51 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
                     <Box
                       key={msg.id}
                       mb={3}
-                      p={2}
+                      p={3}
+                      borderRadius="lg"
                       bg={isOwner ? 'blue.50' : 'gray.100'}
-                      borderRadius="md"
+                      borderLeft="4px solid"
+                      borderColor={isOwner ? 'blue.300' : 'gray.400'}
                     >
                       <HStack justifyContent="space-between" mb={1}>
                         <Text fontSize="sm" fontWeight="bold" color={isOwner ? 'blue.600' : 'gray.800'}>
-                          {msg.senderName || 'Unknown'}{' '}
+                          {msg.senderName}{' '}
                           <Text as="span" fontSize="xs" color="gray.500">
-                            {msg.timestamp?.toDate ? format(msg.timestamp.toDate(), 'p, MMM d') : '...'}
+                            • {msg.timestamp?.toDate ? format(msg.timestamp.toDate(), 'p, MMM d') : '...'}
                           </Text>
                         </Text>
-
-                        {/* Show Edit/Delete only if user owns this message */}
                         {isOwner && (
                           <HStack spacing={1}>
                             {editingId === msg.id ? (
                               <>
-                                <IconButton
-                                  icon={<CheckIcon />}
-                                  size="xs"
-                                  colorScheme="green"
-                                  aria-label="Save edit"
-                                  onClick={saveEdit}
-                                />
-                                <IconButton
-                                  icon={<CloseIcon />}
-                                  size="xs"
-                                  colorScheme="red"
-                                  aria-label="Cancel edit"
-                                  onClick={cancelEditing}
-                                />
+                                <IconButton icon={<CheckIcon />} size="xs" colorScheme="green" onClick={saveEdit} />
+                                <IconButton icon={<CloseIcon />} size="xs" colorScheme="red" onClick={cancelEditing} />
                               </>
                             ) : (
                               <>
-                                <IconButton
-                                  icon={<EditIcon />}
-                                  size="xs"
-                                  aria-label="Edit message"
-                                  onClick={() => startEditing(msg.id, msg.text)}
-                                />
-                                <IconButton
-                                  icon={<DeleteIcon />}
-                                  size="xs"
-                                  colorScheme="red"
-                                  aria-label="Delete message"
-                                  onClick={() => handleDelete(msg.id)}
-                                />
+                                <IconButton icon={<EditIcon />} size="xs" onClick={() => startEditing(msg.id, msg.text)} />
+                                <IconButton icon={<DeleteIcon />} size="xs" colorScheme="red" onClick={() => handleDelete(msg.id)} />
                               </>
                             )}
                           </HStack>
                         )}
+                        {!isOwner && (
+                          <IconButton
+                            icon={<RepeatIcon />}
+                            size="xs"
+                            onClick={() => setReplyTo(msg)}
+                            aria-label="Reply"
+                          />
+                        )}
                       </HStack>
+
+                      {msg.replyTo && (
+                        <Box bg="gray.200" p={2} borderRadius="md" mb={1}>
+                          <Text fontSize="xs" color="gray.600">
+                            Replying to <strong>{msg.replySender}</strong>: "{msg.replyTo}"
+                          </Text>
+                        </Box>
+                      )}
 
                       {editingId === msg.id ? (
                         <Input
@@ -206,9 +204,10 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
                           value={editingText}
                           onChange={(e) => setEditingText(e.target.value)}
                           onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
+                          autoFocus
                         />
                       ) : (
-                        <Text fontSize="sm" ml={2}>{msg.text}</Text>
+                        <Text fontSize="sm">{msg.text}</Text>
                       )}
                     </Box>
                   );
@@ -216,18 +215,41 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
                 <div ref={chatEndRef} />
               </Box>
 
-              <HStack>
+              {replyTo && (
+                <Box bg="yellow.50" p={2} borderRadius="md" mb={2}>
+                  <Text fontSize="xs">Replying to <strong>{replyTo.senderName}</strong>: "{replyTo.text}"</Text>
+                  <Button size="xs" ml={2} onClick={() => setReplyTo(null)} variant="ghost" color="red.400">
+                    Cancel
+                  </Button>
+                </Box>
+              )}
+
+              <HStack align="start">
                 <Input
-                  placeholder="Type a message with emoji… 😊"
+                  ref={inputRef}
+                  placeholder="Type a message"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                   isDisabled={!user}
                 />
+                <Popover isOpen={showEmoji} onClose={() => setShowEmoji(false)} placement="top">
+                  <PopoverTrigger>
+                    <IconButton
+                      icon={<AddIcon />}
+                      aria-label="Add emoji"
+                      onClick={() => setShowEmoji(!showEmoji)}
+                    />
+                  </PopoverTrigger>
+                  <PopoverContent w="300px">
+                    <EmojiPicker onEmojiClick={onEmojiClick} height={350} />
+                  </PopoverContent>
+                </Popover>
                 <Button colorScheme="teal" onClick={handleSend} isDisabled={!user}>
                   Send
                 </Button>
               </HStack>
+
               {!user && (
                 <Text fontSize="xs" color="red.500" mt={2}>
                   Please log in to send messages.
