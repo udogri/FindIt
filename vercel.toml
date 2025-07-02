@@ -1,14 +1,3 @@
-[build]
-command = "npm run build"
-publish = "dist"
-ignoreCommand = "git diff --quiet HEAD^ HEAD ."
-
-[dev]
-command = "vite"
-port = 5173
-
-# Optional: Redirects
-[[redirects]]
-from = "/*"
-to = "/index.html"
-status = 200
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+}
