@@ -30,6 +30,7 @@ import {
   Spinner,
   Center,
   Flex,
+  Icon,
 } from '@chakra-ui/react';
 import { useState, useEffect, useRef } from 'react';
 import { db, auth } from '../firebase';
@@ -44,6 +45,7 @@ import {
   where,
   orderBy,
 } from 'firebase/firestore';
+import { SlFolderAlt } from "react-icons/sl";
 
 export default function LostAndFound() {
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -404,7 +406,8 @@ export default function LostAndFound() {
 
       {lostItems.length === 0 && foundItems.length === 0 ? (
         <Box textAlign="center" py={10} w="100%">
-          <Text fontSize="lg" color="gray.600">
+          <Icon as={SlFolderAlt} boxSize={55} color="gray.400" mt={4} />
+          <Text fontSize="lg" color="gray.600" mt={4}>
             No lost or found items have been reported yet.
           </Text>
         </Box>
