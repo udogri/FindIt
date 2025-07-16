@@ -52,6 +52,7 @@ export default function LostAndFound() {
   const [editMode, setEditMode] = useState(false);
   const [editItemId, setEditItemId] = useState(null);
   const [editCollectionName, setEditCollectionName] = useState('');
+  const [userLocation, setUserLocation] = useState({ latitude: null, longitude: null });
   const toast = useToast();
   const cancelRef = useRef();
   const [pendingDelete, setPendingDelete] = useState(null);
@@ -120,6 +121,21 @@ export default function LostAndFound() {
 
   useEffect(() => {
     fetchItems();
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.warn("Location permission denied or unavailable.", error);
+          setUserLocation({ latitude: null, longitude: null });
+        }
+      );
+    }
   }, [currentUser]);
 
   const handleChange = e => {
@@ -197,6 +213,12 @@ export default function LostAndFound() {
           lastSeen: formData.lastSeen || '',
           userId: currentUser.uid, // Store user ID
           createdAt: new Date(),
+          location: userLocation.latitude && userLocation.longitude
+    ? {
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+      }
+    : null,
         });
       }
 

@@ -3,12 +3,9 @@ import {
   Box,
   Heading,
   Text,
-  Button,
-  Stack,
   SimpleGrid,
   Image,
   VStack,
-  HStack,
   useDisclosure,
   Spinner,
 } from '@chakra-ui/react';
@@ -19,12 +16,10 @@ import ReportDetailsModal from '../components/ReportDetails';
 const Community = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [lostItems, setLostItems] = useState([]);
-  const [foundItems, setFoundItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedReport, setSelectedReport] = useState(null);
   const [allReports, setAllReports] = useState([]);
-
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [userLocation, setUserLocation] = useState(null);
 
   const openDetails = (report) => {
     if (report) {
@@ -33,46 +28,95 @@ const Community = () => {
     }
   };
 
+  // Haversine formula to calculate distance in km
+  const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Earth radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // Get user's current location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          setUserLocation(null); // fallback to show all if user denies
+        }
+      );
+    }
+  }, []);
+
+  // Fetch data after location is available
   useEffect(() => {
     const fetchItems = async () => {
       setLoading(true);
       try {
         const lostSnapshot = await getDocs(collection(db, 'lostItems'));
         const foundSnapshot = await getDocs(collection(db, 'foundItems'));
-  
+
         const lostData = lostSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
           status: 'Lost',
         }));
-  
+
         const foundData = foundSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
           status: 'Found',
         }));
-  
-        // ✅ Combine and sort by createdAt (latest first)
-        const combined = [...lostData, ...foundData].sort((a, b) => {
-          const dateA = a.createdAt?.toDate?.() || new Date(0); // fallback to epoch if missing
+
+        let combined = [...lostData, ...foundData];
+
+        // ✅ Filter based on distance if user location is available
+        if (userLocation) {
+          combined = combined.filter((item) => {
+            const loc = item.location;
+            if (loc?.latitude && loc?.longitude) {
+              const distance = getDistanceFromLatLonInKm(
+                userLocation.latitude,
+                userLocation.longitude,
+                loc.latitude,
+                loc.longitude
+              );
+              return distance <= 20; // show reports within 20km
+            }
+            return false; // discard items without location
+          });
+        }
+
+        // ✅ Sort by createdAt (latest first)
+        combined.sort((a, b) => {
+          const dateA = a.createdAt?.toDate?.() || new Date(0);
           const dateB = b.createdAt?.toDate?.() || new Date(0);
           return dateB - dateA;
         });
-  
-        setLostItems(lostData);
-        setFoundItems(foundData);
-        setAllReports(combined); // ✅ store sorted reports
+
+        setAllReports(combined);
       } catch (error) {
         console.error('Error fetching items:', error);
       } finally {
         setLoading(false);
       }
     };
-  
-    fetchItems();
-  }, []);
-  
 
+    fetchItems();
+  }, [userLocation]);
 
   return (
     <Box px={8} py={12} bg="gray.50">
@@ -81,17 +125,20 @@ const Community = () => {
         <Text fontSize="lg" color="gray.600" maxW="600px">
           Help reunite people with their lost belongings. Whether you've found something or lost an item, we're here to make connection easier.
         </Text>
-        
       </VStack>
 
       <Box mt={12}>
-        <Heading size="lg" mb={6}>Recent Reports</Heading>
+        <Heading size="lg" mb={6}>Recent Reports Nearby</Heading>
 
         {loading ? (
           <Box textAlign="center" py={10}>
             <Spinner size="xl" />
             <Text mt={4} color="gray.500">Loading reports...</Text>
           </Box>
+        ) : allReports.length === 0 ? (
+          <Text textAlign="center" color="gray.600" mt={8}>
+            No recent reports in your area.
+          </Text>
         ) : (
           <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
             {allReports.map((report) => (
