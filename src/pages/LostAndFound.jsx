@@ -31,6 +31,11 @@ import {
   Center,
   Flex,
   Icon,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  IconButton,
 } from '@chakra-ui/react';
 import { useState, useEffect, useRef } from 'react';
 import { db, auth } from '../firebase';
@@ -46,6 +51,7 @@ import {
   orderBy,
 } from 'firebase/firestore';
 import { SlFolderAlt } from "react-icons/sl";
+import { FiMoreVertical } from "react-icons/fi";
 
 export default function LostAndFound() {
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -56,19 +62,8 @@ export default function LostAndFound() {
   const toast = useToast();
   const cancelRef = useRef();
   const [pendingDelete, setPendingDelete] = useState(null);
-  const {
-    isOpen: isFormOpen,
-    onOpen: openFormModal,
-    onClose: closeFormModal,
-  } = useDisclosure(); // For FORM modal
-
-  const {
-    isOpen: isDeleteOpen,
-    onOpen: openDeleteModal,
-    onClose: closeDeleteModal,
-  } = useDisclosure(); // For DELETE modal
-
-
+  const { isOpen: isFormOpen, onOpen: openFormModal, onClose: closeFormModal } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: openDeleteModal, onClose: closeDeleteModal } = useDisclosure();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -95,21 +90,21 @@ export default function LostAndFound() {
 
     setLoading(true);
     try {
-      // Query lostItems by current user
       const lostQuery = query(
         collection(db, 'lostItems'),
         where('userId', '==', currentUser.uid),
         orderBy('createdAt', 'desc')
       );
-      const lostSnapshot = await getDocs(lostQuery);
-
-      // Query foundItems by current user
       const foundQuery = query(
         collection(db, 'foundItems'),
         where('userId', '==', currentUser.uid),
         orderBy('createdAt', 'desc')
       );
-      const foundSnapshot = await getDocs(foundQuery);
+
+      const [lostSnapshot, foundSnapshot] = await Promise.all([
+        getDocs(lostQuery),
+        getDocs(foundQuery),
+      ]);
 
       setLostItems(lostSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setFoundItems(foundSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -121,7 +116,6 @@ export default function LostAndFound() {
 
   useEffect(() => {
     fetchItems();
-
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -211,14 +205,14 @@ export default function LostAndFound() {
           description: formData.description,
           imageUrl,
           lastSeen: formData.lastSeen || '',
-          userId: currentUser.uid, // Store user ID
+          userId: currentUser.uid,
           createdAt: new Date(),
           location: userLocation.latitude && userLocation.longitude
-    ? {
-        latitude: userLocation.latitude,
-        longitude: userLocation.longitude,
-      }
-    : null,
+            ? {
+                latitude: userLocation.latitude,
+                longitude: userLocation.longitude,
+              }
+            : null,
         });
       }
 
@@ -239,7 +233,6 @@ export default function LostAndFound() {
   };
 
   const handleEdit = (item, collectionName) => {
-    // setLoading(true);
     if (!currentUser || item.userId !== currentUser.uid) {
       setLoading(false);
       toast({
@@ -267,10 +260,7 @@ export default function LostAndFound() {
     openFormModal();
   };
 
-
   const handleDelete = (id, collectionName, userId) => {
-    console.log("Delete clicked");
-
     if (!currentUser || userId !== currentUser.uid) {
       toast({
         title: 'Permission denied.',
@@ -281,23 +271,18 @@ export default function LostAndFound() {
         position: 'top',
       });
       return;
-    } 
-    
+    }
 
     setPendingDelete({ id, collectionName, userId });
-    openDeleteModal(); // opens modal
-    
+    openDeleteModal();
   };
 
   const confirmDelete = async () => {
     if (!pendingDelete) return;
-  
     setLoading(true);
     try {
       await deleteDoc(doc(db, pendingDelete.collectionName, pendingDelete.id));
       await fetchItems();
-      setLoading(false);
-
       toast({
         title: 'Item deleted.',
         status: 'success',
@@ -306,8 +291,6 @@ export default function LostAndFound() {
         position: 'top',
       });
     } catch (error) {
-      setLoading(false);
-
       console.error('Error deleting item:', error);
       toast({
         title: 'Delete failed',
@@ -323,8 +306,6 @@ export default function LostAndFound() {
       setLoading(false);
     }
   };
-  
-
 
   const resetForm = () => {
     setFormData({ title: '', description: '', image: null, imageUrl: '', type: 'lost', lastSeen: '' });
@@ -334,11 +315,59 @@ export default function LostAndFound() {
     closeFormModal();
   };
 
+  const renderItems = (items, color, title, collectionName) => (
+    <VStack align="start" bg={color} p={4} borderRadius="md" spacing={4} minH="300px">
+      <Heading size="md">{title}</Heading>
+      {items.map(item => (
+        <Box
+          key={item.id}
+          p={3}
+          bg="white"
+          shadow="sm"
+          rounded="md"
+          w="100%"
+          display="flex"
+          flexDirection="column"
+        >
+          {item.imageUrl && (
+            <Image
+              src={item.imageUrl}
+              alt={item.title}
+              borderRadius="md"
+              mb={2}
+              maxH="200px"
+              objectFit="cover"
+              width="100%"
+            />
+          )}
+          <Text fontWeight="bold" noOfLines={1}>{item.title}</Text>
+          <Text fontSize="sm" color="gray.600" noOfLines={3} mb={2}>{item.description}</Text>
+
+          {currentUser && item.userId === currentUser.uid && (
+            <Menu placement="bottom-end">
+              <MenuButton
+                as={IconButton}
+                icon={<FiMoreVertical />}
+                variant="ghost"
+                size="sm"
+                alignSelf="flex-end"
+              />
+              <MenuList fontSize="sm">
+                <MenuItem onClick={() => handleEdit(item, collectionName)}>Edit</MenuItem>
+                <MenuItem onClick={() => handleDelete(item.id, collectionName, item.userId)} color="red.500">
+                  Delete
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          )}
+        </Box>
+      ))}
+    </VStack>
+  );
+
   return (
     <Box p={8} textAlign="center">
-      <Heading mb={4} fontSize="50px">
-        Lost & Found - My Reports
-      </Heading>
+      <Heading mb={4} fontSize="50px">Lost & Found - My Reports</Heading>
       <Text mb={8}>Report lost and found items in your community.</Text>
 
       <Button
@@ -354,7 +383,6 @@ export default function LostAndFound() {
         Report Lost or Found Item
       </Button>
 
-      {/* Modal for form */}
       <Modal isOpen={isFormOpen} onClose={resetForm} size="lg" scrollBehavior="inside">
         <ModalOverlay />
         <ModalContent>
@@ -362,50 +390,29 @@ export default function LostAndFound() {
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
-              <FormControl>
-                <FormLabel>Type</FormLabel>
+              <FormControl><FormLabel>Type</FormLabel>
                 <Select name="type" value={formData.type} onChange={handleChange}>
                   <option value="lost">Lost</option>
                   <option value="found">Found</option>
                 </Select>
               </FormControl>
-              <FormControl>
-                <FormLabel>Title</FormLabel>
+              <FormControl><FormLabel>Title</FormLabel>
                 <Input name="title" value={formData.title} onChange={handleChange} />
               </FormControl>
-              <FormControl>
-                <FormLabel>By</FormLabel>
-                <Input name="by" value={formData.by} onChange={handleChange} />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Last seen</FormLabel>
+              <FormControl><FormLabel>Last seen</FormLabel>
                 <Textarea name="lastSeen" value={formData.lastSeen} onChange={handleChange} />
               </FormControl>
-              <FormControl>
-                <FormLabel>Description</FormLabel>
+              <FormControl><FormLabel>Description</FormLabel>
                 <Textarea name="description" value={formData.description} onChange={handleChange} />
               </FormControl>
-              <FormControl>
-                <FormLabel>Upload Image</FormLabel>
+              <FormControl><FormLabel>Upload Image</FormLabel>
                 <Input type="file" name="image" accept="image/*" onChange={handleChange} />
               </FormControl>
 
-              {/* Image preview */}
-              {formData.image && (
+              {(formData.image || formData.imageUrl) && (
                 <Box boxSize="150px" mt={2}>
                   <Image
-                    src={URL.createObjectURL(formData.image)}
-                    alt="Preview"
-                    boxSize="150px"
-                    objectFit="cover"
-                    borderRadius="md"
-                  />
-                </Box>
-              )}
-              {!formData.image && formData.imageUrl && (
-                <Box boxSize="150px" mt={2}>
-                  <Image
-                    src={formData.imageUrl}
+                    src={formData.image ? URL.createObjectURL(formData.image) : formData.imageUrl}
                     alt="Preview"
                     boxSize="150px"
                     objectFit="cover"
@@ -419,257 +426,57 @@ export default function LostAndFound() {
             <Button onClick={handleSubmit} colorScheme="blue" isLoading={loading} mr={3}>
               {editMode ? 'Update' : 'Submit'}
             </Button>
-            <Button variant="ghost" onClick={resetForm}>
-              Cancel
-            </Button>
+            <Button variant="ghost" onClick={resetForm}>Cancel</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
 
-      {lostItems.length === 0 && foundItems.length === 0 ? (
+      {(lostItems.length === 0 && foundItems.length === 0) ? (
         <Box textAlign="center" py={10} w="100%">
           <Icon as={SlFolderAlt} boxSize={55} color="gray.400" mt={4} />
           <Text fontSize="lg" color="gray.600" mt={4}>
             No lost or found items have been reported yet.
           </Text>
         </Box>
-      ) : lostItems.length > 0 && foundItems.length > 0 ? (
-        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10} w="100%">
-          {/* LOST ITEMS */}
-          <VStack align="start" bg="red.50" p={4} borderRadius="md" spacing={4} minH="300px">
-            <Heading size="md">Lost Items</Heading>
-            {lostItems.map(item => (
-              <Box
-                key={item.id}
-                p={3}
-                bg="white"
-                shadow="sm"
-                rounded="md"
-                w="100%"
-                display="flex"
-                flexDirection="column"
-              >
-                {item.imageUrl && (
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.title}
-                    borderRadius="md"
-                    mb={2}
-                    maxH="200px"
-                    objectFit="cover"
-                    width="100%"
-                  />
-                )}
-                <Text fontWeight="bold" noOfLines={1}>
-                  {item.title}
-                </Text>
-                <Text fontSize="sm" color="gray.600" noOfLines={3} mb={2}>
-                  {item.description}
-                </Text>
-                {currentUser && item.userId === currentUser.uid && (
-                  <Box mt="auto" display="flex" gap={2}>
-                    <Button size="sm" colorScheme="blue" onClick={() => handleEdit(item, 'lostItems')}>
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      colorScheme="red"
-                      onClick={() => {
-                        setPendingDelete({ id: item.id, collectionName: 'lostItems', userId: item.userId });
-                        openDeleteModal(); // 🛠️ Make sure this opens the delete modal, not the form modal
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </Box>
-                )}
-              </Box>
-            ))}
-          </VStack>
-          
-          {/* FOUND ITEMS */}
-          <VStack align="start" bg="green.50" p={4} borderRadius="md" spacing={4} minH="300px">
-            <Heading size="md">Found Items</Heading>
-            {foundItems.map(item => (
-              <Box
-                key={item.id}
-                p={3}
-                bg="white"
-                shadow="sm"
-                rounded="md"
-                w="100%"
-                display="flex"
-                flexDirection="column"
-              >
-                {item.imageUrl && (
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.title}
-                    borderRadius="md"
-                    mb={2}
-                    maxH="200px"
-                    objectFit="cover"
-                    width="100%"
-                  />
-                )}
-                <Text fontWeight="bold" noOfLines={1}>
-                  {item.title}
-                </Text>
-                <Text fontSize="sm" color="gray.600" noOfLines={3} mb={2}>
-                  {item.description}
-                </Text>
-                {currentUser && item.userId === currentUser.uid && (
-                  <Box mt="auto" display="flex" gap={2}>
-                    <Button size="sm" colorScheme="blue" onClick={() => handleEdit(item, 'foundItems')}>
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      colorScheme="red"
-                      onClick={() => handleDelete(item.id, 'foundItems', item.userId)}
-                    >
-                      Delete
-                    </Button>
-                  </Box>
-                )}
-              </Box>
-            ))}
-          </VStack>
-        </SimpleGrid>
       ) : (
-        // Only one of the categories has items – center it
-        <Flex justify="center" w="100%">
-          {lostItems.length > 0 ? (
-            <VStack align="start" bg="red.50" p={4} borderRadius="md" spacing={4} minH="300px" w={{ base: "100%", md: "60%" }}>
-              <Heading size="md">Lost Items</Heading>
-              {lostItems.map(item => (
-                <Box
-                  key={item.id}
-                  p={3}
-                  bg="white"
-                  shadow="sm"
-                  rounded="md"
-                  w="100%"
-                  display="flex"
-                  flexDirection="column"
-                >
-                  {item.imageUrl && (
-                    <Image
-                      src={item.imageUrl}
-                      alt={item.title}
-                      borderRadius="md"
-                      mb={2}
-                      maxH="200px"
-                      objectFit="cover"
-                      width="100%"
-                    />
-                  )}
-                  <Text fontWeight="bold" noOfLines={1}>
-                    {item.title}
-                  </Text>
-                  <Text fontSize="sm" color="gray.600" noOfLines={3} mb={2}>
-                    {item.description}
-                  </Text>
-                  {currentUser && item.userId === currentUser.uid && (
-                    <Box mt="auto" display="flex" gap={2}>
-                      <Button size="sm" colorScheme="blue" onClick={() => handleEdit(item, 'lostItems')}>
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        colorScheme="red"
-                        onClick={() => handleDelete(item.id, 'lostItems', item.userId)}
-                      >
-                        Delete
-                      </Button>
-                    </Box>
-                  )}
-                </Box>
-              ))}
-            </VStack>
-          ) : (
-            <VStack align="start" bg="green.50" p={4} borderRadius="md" spacing={4} minH="300px" w={{ base: "100%", md: "60%" }}>
-              <Heading size="md">Found Items</Heading>
-              {foundItems.map(item => (
-                <Box
-                  key={item.id}
-                  p={3}
-                  bg="white"
-                  shadow="sm"
-                  rounded="md"
-                  w="100%"
-                  display="flex"
-                  flexDirection="column"
-                >
-                  {item.imageUrl && (
-                    <Image
-                      src={item.imageUrl}
-                      alt={item.title}
-                      borderRadius="md"
-                      mb={2}
-                      maxH="200px"
-                      objectFit="cover"
-                      width="100%"
-                    />
-                  )}
-                  <Text fontWeight="bold" noOfLines={1}>
-                    {item.title}
-                  </Text>
-                  <Text fontSize="sm" color="gray.600" noOfLines={3} mb={2}>
-                    {item.description}
-                  </Text>
-                  {currentUser && item.userId === currentUser.uid && (
-                    <Box mt="auto" display="flex" gap={2}>
-                      <Button size="sm" colorScheme="blue" onClick={() => handleEdit(item, 'foundItems')}>
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        colorScheme="red"
-                        onClick={() => handleDelete(item.id, 'foundItems', item.userId)}
-                      >
-                        Delete
-                      </Button>
-                    </Box>
-                  )}
-                </Box>
-              ))}
-            </VStack>
-          )}
-        </Flex>
+        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10} w="100%">
+          {lostItems.length > 0 && renderItems(lostItems, "red.50", "Lost Items", "lostItems")}
+          {foundItems.length > 0 && renderItems(foundItems, "green.50", "Found Items", "foundItems")}
+        </SimpleGrid>
       )}
+
       <AlertDialog
-            isOpen={isDeleteOpen}
-            leastDestructiveRef={cancelRef}
-            onClose={() => {
-              setPendingDelete(null);
-              closeDeleteModal(); // ✅ Proper close function
-            }}
-          >
-            <AlertDialogOverlay>
-              <AlertDialogContent>
-                <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                  Delete Item
-                </AlertDialogHeader>
-                <AlertDialogBody>
-                  Are you sure you want to delete this item? This action cannot be undone.
-                </AlertDialogBody>
-                <AlertDialogFooter>
-                  <Button ref={cancelRef} onClick={closeDeleteModal}>
-                    Cancel
-                  </Button>
-                  <Button
-                    colorScheme="red"
-                    isLoading={loading} // 🛠️ Show loading state
-                    onClick={confirmDelete}
-                    ml={3}
-                  >
-                    Delete
-                  </Button>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialogOverlay>
-          </AlertDialog>
+        isOpen={isDeleteOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={() => {
+          setPendingDelete(null);
+          closeDeleteModal();
+        }}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Item
+            </AlertDialogHeader>
+            <AlertDialogBody>
+              Are you sure you want to delete this item? This action cannot be undone.
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={closeDeleteModal}>
+                Cancel
+              </Button>
+              <Button
+                colorScheme="red"
+                isLoading={loading}
+                onClick={confirmDelete}
+                ml={3}
+              >
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 }

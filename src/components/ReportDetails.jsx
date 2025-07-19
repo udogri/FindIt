@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton,
   ModalBody, ModalFooter, Image, Text, Heading, VStack, Input,
-  Button, Box, HStack, IconButton, useDisclosure, Popover, PopoverTrigger, PopoverContent
+  Button, Box, HStack, IconButton, useDisclosure, Popover, PopoverTrigger, PopoverContent,
+  Grid, GridItem, Tag, Divider, Avatar
 } from '@chakra-ui/react';
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { format } from 'date-fns';
-import { EditIcon, DeleteIcon, CheckIcon, CloseIcon, RepeatIcon, AddIcon } from '@chakra-ui/icons';
+import { EditIcon, DeleteIcon, CheckIcon, CloseIcon, RepeatIcon, ChatIcon } from '@chakra-ui/icons';
 import EmojiPicker from 'emoji-picker-react';
 
 const ReportDetailsModal = ({ isOpen, onClose, report }) => {
@@ -18,7 +19,7 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
   const [editingId, setEditingId] = useState(null);
   const [editingText, setEditingText] = useState('');
   const [replyTo, setReplyTo] = useState(null);
-  const [showEmoji, setShowEmoji] = useState(false);
+  const { isOpen: isEmojiOpen, onOpen: onEmojiOpen, onClose: onEmojiClose } = useDisclosure();
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -44,9 +45,7 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
   }, [report?.id]);
 
   useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const handleSend = async () => {
@@ -57,10 +56,9 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
         text: input.trim(),
         uid: user.uid,
         senderName: user.displayName || user.email || 'Anonymous',
-        reportSender: report.sender || 'Unknown',
+        photoURL: user.photoURL,
         timestamp: serverTimestamp(),
-        replyTo: replyTo ? replyTo.text : null,
-        replySender: replyTo ? replyTo.senderName : null
+        replyTo: replyTo ? { text: replyTo.text, senderName: replyTo.senderName } : null,
       });
       setInput('');
       setReplyTo(null);
@@ -94,10 +92,8 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
       const messageRef = doc(db, 'reports', report.id, 'messages', editingId);
       await updateDoc(messageRef, {
         text: editingText.trim(),
-        timestamp: serverTimestamp()
       });
-      setEditingId(null);
-      setEditingText('');
+      cancelEditing();
     } catch (error) {
       console.error('Error updating message:', error);
     }
@@ -105,160 +101,168 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
 
   const onEmojiClick = (emojiData) => {
     setInput((prev) => prev + emojiData.emoji);
-    setShowEmoji(false);
+    onEmojiClose();
     inputRef.current?.focus();
   };
 
   if (!isOpen || !report) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered scrollBehavior="inside">
+    <Modal isOpen={isOpen} onClose={onClose} size="4xl" isCentered scrollBehavior="inside">
       <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>{report.title || 'Report Details'}</ModalHeader>
+      <ModalContent maxH="90vh">
+        <ModalHeader borderBottomWidth="1px">{report.title || 'Report Details'}</ModalHeader>
         <ModalCloseButton />
-        <ModalBody>
-          <VStack spacing={4} align="start">
-            {report.imageUrl && (
-              <Image
-                src={report.imageUrl}
-                alt={report.title || 'Report Image'}
-                objectFit="cover"
-                w="100%"
-                h="250px"
-                borderRadius="md"
-              />
-            )}
-            <Text fontSize="sm" color="gray.600">
-              {report.description || 'No description provided.'}
-            </Text>
-            <Text fontWeight="bold" color={report.status === 'Lost' ? 'red.500' : 'green.500'}>
-              Status: {report.status}
-            </Text>
+        <ModalBody p={0}>
+          <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} h="full">
+            <GridItem p={6} borderRightWidth={{ md: "1px" }}>
+              <VStack spacing={4} align="start">
+                {report.imageUrl && (
+                  <Image
+                    src={report.imageUrl}
+                    alt={report.title || 'Report Image'}
+                    objectFit="cover"
+                    w="100%"
+                    h="300px"
+                    borderRadius="lg"
+                    shadow="md"
+                  />
+                )}
+                <HStack justifyContent="space-between" w="100%">
+                    <Heading size="lg">{report.title}</Heading>
+                    <Tag size="lg" colorScheme={report.status === 'Lost' ? 'red' : 'green'}>
+                        {report.status}
+                    </Tag>
+                </HStack>
+                <Text fontSize="md" color="gray.600">
+                  {report.description || 'No description provided.'}
+                </Text>
+              </VStack>
+            </GridItem>
 
-            <Box w="100%" mt={6}>
-              <Heading size="sm" mb={2}>Chat</Heading>
-              <Box
-                bg="gray.50"
-                borderRadius="lg"
-                p={3}
-                h="250px"
-                overflowY="auto"
-                mb={3}
-              >
-                {messages.map((msg) => {
-                  const isOwner = msg.uid === user?.uid;
-                  return (
-                    <Box
-                      key={msg.id}
-                      mb={3}
-                      p={3}
-                      borderRadius="lg"
-                      bg={isOwner ? 'blue.50' : 'gray.100'}
-                      borderLeft="4px solid"
-                      borderColor={isOwner ? 'blue.300' : 'gray.400'}
-                    >
-                      <HStack justifyContent="space-between" mb={1}>
-                        <Text fontSize="sm" fontWeight="bold" color={isOwner ? 'blue.600' : 'gray.800'}>
-                          {msg.senderName}{' '}
-                          <Text as="span" fontSize="xs" color="gray.500">
-                            • {msg.timestamp?.toDate ? format(msg.timestamp.toDate(), 'p, MMM d') : '...'}
-                          </Text>
-                        </Text>
-                        {isOwner && (
-                          <HStack spacing={1}>
-                            {editingId === msg.id ? (
-                              <>
-                                <IconButton icon={<CheckIcon />} size="xs" colorScheme="green" onClick={saveEdit} />
-                                <IconButton icon={<CloseIcon />} size="xs" colorScheme="red" onClick={cancelEditing} />
-                              </>
-                            ) : (
-                              <>
-                                <IconButton icon={<EditIcon />} size="xs" onClick={() => startEditing(msg.id, msg.text)} />
-                                <IconButton icon={<DeleteIcon />} size="xs" colorScheme="red" onClick={() => handleDelete(msg.id)} />
-                              </>
+            <GridItem display="flex" flexDirection="column" h="full">
+              <Box flex="1" p={6} overflowY="auto" display="flex" flexDirection="column">
+                <Heading size="md" mb={4}>Community Chat</Heading>
+                <VStack spacing={4} align="stretch" flex="1">
+                  {messages.map((msg) => {
+                    const isOwner = msg.uid === user?.uid;
+                    return (
+                      <Box key={msg.id} display="flex" justifyContent={isOwner ? 'flex-end' : 'flex-start'}>
+                        <HStack spacing={3} align="start" maxW="80%">
+                          {!isOwner && <Avatar size="sm" name={msg.senderName} src={msg.photoURL} />}
+                          <VStack align={isOwner ? 'flex-end' : 'flex-start'} spacing={1}>
+                            <HStack>
+                                <Text fontSize="sm" fontWeight="bold">
+                                {msg.senderName}
+                                </Text>
+                                <Text as="span" fontSize="xs" color="gray.500">
+                                    • {msg.timestamp?.toDate ? format(msg.timestamp.toDate(), 'p, MMM d') : '...'}
+                                </Text>
+                            </HStack>
+                            
+                            {msg.replyTo && (
+                                <Box bg="gray.100" p={2} borderRadius="md" mb={1} w="fit-content">
+                                <Text fontSize="xs" color="gray.600">
+                                    Replying to <strong>{msg.replyTo.senderName}</strong>: "{msg.replyTo.text}"
+                                </Text>
+                                </Box>
                             )}
-                          </HStack>
-                        )}
-                        {!isOwner && (
-                          <IconButton
-                            icon={<RepeatIcon />}
-                            size="xs"
-                            onClick={() => setReplyTo(msg)}
-                            aria-label="Reply"
-                          />
-                        )}
-                      </HStack>
 
-                      {msg.replyTo && (
-                        <Box bg="gray.200" p={2} borderRadius="md" mb={1}>
-                          <Text fontSize="xs" color="gray.600">
-                            Replying to <strong>{msg.replySender}</strong>: "{msg.replyTo}"
-                          </Text>
-                        </Box>
-                      )}
-
-                      {editingId === msg.id ? (
-                        <Input
-                          size="sm"
-                          value={editingText}
-                          onChange={(e) => setEditingText(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
-                          autoFocus
-                        />
-                      ) : (
-                        <Text fontSize="sm">{msg.text}</Text>
-                      )}
-                    </Box>
-                  );
-                })}
-                <div ref={chatEndRef} />
+                            <Box
+                              p={3}
+                              borderRadius="lg"
+                              bg={isOwner ? 'blue.500' : 'gray.100'}
+                              color={isOwner ? 'white' : 'black'}
+                            >
+                              {editingId === msg.id ? (
+                                <HStack>
+                                  <Input
+                                    size="sm"
+                                    value={editingText}
+                                    onChange={(e) => setEditingText(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
+                                    autoFocus
+                                    variant="filled"
+                                  />
+                                  <IconButton icon={<CheckIcon />} size="xs" colorScheme="green" onClick={saveEdit} />
+                                  <IconButton icon={<CloseIcon />} size="xs" colorScheme="red" onClick={cancelEditing} />
+                                </HStack>
+                              ) : (
+                                <Text fontSize="sm">{msg.text}</Text>
+                              )}
+                            </Box>
+                            
+                            <HStack spacing={1}>
+                                {isOwner && editingId !== msg.id && (
+                                <>
+                                    <IconButton icon={<EditIcon />} size="xs" variant="ghost" onClick={() => startEditing(msg.id, msg.text)} />
+                                    <IconButton icon={<DeleteIcon />} size="xs" variant="ghost" colorScheme="red" onClick={() => handleDelete(msg.id)} />
+                                </>
+                                )}
+                                {!isOwner && (
+                                <IconButton
+                                    icon={<RepeatIcon />}
+                                    size="xs"
+                                    variant="ghost"
+                                    onClick={() => setReplyTo(msg)}
+                                    aria-label="Reply"
+                                />
+                                )}
+                            </HStack>
+                          </VStack>
+                          {isOwner && <Avatar size="sm" name={user.displayName} src={user.photoURL} />}
+                        </HStack>
+                      </Box>
+                    );
+                  })}
+                  <div ref={chatEndRef} />
+                </VStack>
               </Box>
 
-              {replyTo && (
-                <Box bg="yellow.50" p={2} borderRadius="md" mb={2}>
-                  <Text fontSize="xs">Replying to <strong>{replyTo.senderName}</strong>: "{replyTo.text}"</Text>
-                  <Button size="xs" ml={2} onClick={() => setReplyTo(null)} variant="ghost" color="red.400">
-                    Cancel
+              <Box p={4} borderTopWidth="1px">
+                {replyTo && (
+                  <Box bg="gray.100" p={2} borderRadius="md" mb={2} display="flex" justifyContent="space-between" alignItems="center">
+                    <Text fontSize="xs">Replying to <strong>{replyTo.senderName}</strong>: "{replyTo.text}"</Text>
+                    <IconButton size="xs" icon={<CloseIcon />} onClick={() => setReplyTo(null)} variant="ghost" colorScheme="red" />
+                  </Box>
+                )}
+                <HStack align="center">
+                  <Popover isOpen={isEmojiOpen} onOpen={onEmojiOpen} onClose={onEmojiClose} placement="top-start">
+                    <PopoverTrigger>
+                      <IconButton
+                        icon={<ChatIcon />}
+                        aria-label="Add emoji"
+                        variant="ghost"
+                      />
+                    </PopoverTrigger>
+                    <PopoverContent w="auto" border="none" bg="transparent">
+                      <EmojiPicker onEmojiClick={onEmojiClick} height={350} />
+                    </PopoverContent>
+                  </Popover>
+                  <Input
+                    ref={inputRef}
+                    placeholder="Type a message..."
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                    isDisabled={!user}
+                    variant="filled"
+                    borderRadius="full"
+                  />
+                  <Button colorScheme="blue" onClick={handleSend} isDisabled={!user || !input.trim()} borderRadius="full">
+                    Send
                   </Button>
-                </Box>
-              )}
-
-              <HStack align="start">
-                <Input
-                  ref={inputRef}
-                  placeholder="Type a message"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  isDisabled={!user}
-                />
-                <Popover isOpen={showEmoji} onClose={() => setShowEmoji(false)} placement="top">
-                  <PopoverTrigger>
-                    <IconButton
-                      icon={<AddIcon />}
-                      aria-label="Add emoji"
-                      onClick={() => setShowEmoji(!showEmoji)}
-                    />
-                  </PopoverTrigger>
-                  <PopoverContent w="300px">
-                    <EmojiPicker onEmojiClick={onEmojiClick} height={350} />
-                  </PopoverContent>
-                </Popover>
-                <Button colorScheme="teal" onClick={handleSend} isDisabled={!user}>
-                  Send
-                </Button>
-              </HStack>
-
-              {!user && (
-                <Text fontSize="xs" color="red.500" mt={2}>
-                  Please log in to send messages.
-                </Text>
-              )}
-            </Box>
-          </VStack>
+                </HStack>
+                {!user && (
+                  <Text fontSize="xs" color="red.500" mt={2} textAlign="center">
+                    Please log in to send messages.
+                  </Text>
+                )}
+              </Box>
+            </GridItem>
+          </Grid>
         </ModalBody>
-        <ModalFooter>
+        <ModalFooter borderTopWidth="1px">
           <Button variant="ghost" onClick={onClose}>Close</Button>
         </ModalFooter>
       </ModalContent>
@@ -267,3 +271,4 @@ const ReportDetailsModal = ({ isOpen, onClose, report }) => {
 };
 
 export default ReportDetailsModal;
+
