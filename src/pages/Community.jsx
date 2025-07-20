@@ -96,7 +96,7 @@ const Community = () => {
               );
               return distance <= 20; // show reports within 20km
             }
-            return false; // discard items without location
+            return true; // allow items without location (for debugging)
           });
         }
 
@@ -121,14 +121,14 @@ const Community = () => {
   return (
     <Box px={8} py={12} bg="gray.50">
       <VStack spacing={6} textAlign="center">
-        <Heading size="2xl">Join the Community</Heading>
-        <Text fontSize="lg" color="gray.600" maxW="600px">
+        <Heading fontSize={{base: "20px", md: "40px"}}>Join the Community</Heading>
+        <Text fontSize={{base: "12px", md: "20px"}} color="gray.600" maxW="600px">
           Help reunite people with their lost belongings. Whether you've found something or lost an item, we're here to make connection easier.
         </Text>
       </VStack>
 
       <Box mt={12}>
-        <Heading size="lg" mb={6}>Recent Reports Nearby</Heading>
+        <Heading fontSize={{base: "12px", md: "20px"}} mb={6}>Recent Reports Nearby</Heading>
 
         {loading ? (
           <Box textAlign="center" py={10}>
@@ -165,7 +165,7 @@ const Community = () => {
                     mb={4}
                   />
                 )}
-                <Heading size="md">{report.title || 'Untitled Report'}</Heading>
+                <Heading fontSize={{base: "12px", md: "20px"}}>{report.title || 'Untitled Report'}</Heading>
                 <Text fontSize="sm" color="gray.600" mt={2}>
                   {report.description || 'No description provided.'}
                 </Text>
@@ -185,12 +185,12 @@ const Community = () => {
 
       <ReportDetailsModal isOpen={isOpen} onClose={onClose} report={selectedReport} />
 
-      <Box mt={16} textAlign="center">
+      {/* <Box mt={16} textAlign="center">
         <Heading size="md" mb={4}>Your Help Matters</Heading>
         <Text maxW="600px" mx="auto" color="gray.600">
           Every shared post, every report, every watchful eye counts. Be part of the solution — help others and let others help you.
         </Text>
-      </Box>
+      </Box> */}
     </Box>
   );
 };

@@ -367,8 +367,8 @@ export default function LostAndFound() {
 
   return (
     <Box p={8} textAlign="center">
-      <Heading mb={4} fontSize="50px">Lost & Found - My Reports</Heading>
-      <Text mb={8}>Report lost and found items in your community.</Text>
+      <Heading mb={4} fontSize={{base: "20px", md: "40px"}}>Lost & Found - My Reports</Heading>
+      <Text mb={8} fontSize={{base: "12px", md: "20px"}} >Report lost and found items in your community.</Text>
 
       <Button
         background="#34495e"
@@ -379,6 +379,7 @@ export default function LostAndFound() {
           resetForm();
           openFormModal();
         }}
+        fontSize={{base: "8px", md: "16px"}}
       >
         Report Lost or Found Item
       </Button>
