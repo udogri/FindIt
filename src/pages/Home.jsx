@@ -51,10 +51,11 @@ const HomePage = () => {
           color="white"
           borderRadius="lg"
         >
-          <Heading fontSize={{ base: '2xl', md: '4xl' }}>
+          <Heading fontSize={{base: "18px", md: "24px"}}
+>
             Welcome, {user?.displayName || 'User'} 👋
           </Heading>
-          <Text fontSize={{ base: 'md', md: 'lg' }} mt={4} maxW="600px" mx="auto">
+          <Text fontSize={{base: "12px", md: "16px"}} mt={4} maxW="600px" mx="auto">
             This is <b>FindIt</b> — a platform that connects people in your locality to
             report lost items or post found belongings. Let's help each other!
           </Text>
@@ -62,15 +63,22 @@ const HomePage = () => {
             mt={6}
             bg="white"
             variant="outline"
-            size="lg"
             w={{base: "100%", md: "250px"}}
-            fontSize={{base: "16px", md: "20px"}}
+            fontSize={{base: "12px", md: "16px"}}
             _hover={{ bg: 'transparent', color: 'white' }}
             onClick={() => navigate('/lost-and-found')}
           >
             Get Started
           </Button>
         </Box>
+        {/* Call-to-action Section
+        <Box textAlign="center" >
+          <Heading fontSize={{base: "18px", md: "24px"}} mb={3}>
+            Start Making a Difference
+          </Heading>
+          <Text mb={4} fontSize={{base: "12px", md: "16px"}}>Post a missing or found item to help others in your area.</Text>
+          
+        </Box> */}
 
         {/* Feature Highlights */}
         <Stack
@@ -97,27 +105,21 @@ const HomePage = () => {
                 alt={f.title}
                 boxSize="100px"
                 mx="auto"
+                w={{base: "80px", md: "100px"}}
                 mb={4}
                 objectFit="contain"
               />
-              <Heading fontSize="xl" mb={2}>
+              <Heading fontSize={{base: "12px", md: "16px"}} mb={2}>
                 {f.title}
               </Heading>
-              <Text fontSize="sm" color="gray.600">
+              <Text fontSize={{base: "10px", md: "14px"}} color="gray.600">
                 {f.text}
               </Text>
             </MotionBox>
           ))}
         </Stack>
 
-        {/* Call-to-action Section */}
-        <Box textAlign="center" mt={10}>
-          <Heading fontSize="2xl" mb={3}>
-            Start Making a Difference
-          </Heading>
-          <Text mb={4}>Post a missing or found item to help others in your area.</Text>
-          
-        </Box>
+        
       </VStack>
     </Box>
   );

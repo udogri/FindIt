@@ -25,6 +25,7 @@ const NavLink = ({ name, path, onClose }) => (
     px={2}
     py={1}
     rounded="md"
+    fontSize={{base: "12px", md: "16px"}}
     _hover={{ bg: '#3c5a70' }}
     onClick={onClose}
   >
@@ -71,7 +72,7 @@ export default function Header() {
   <MenuButton
     as={IconButton}
     icon={<MdLogout />}
-    fontSize="24px"
+    fontSize={{base: "12px", md: "16px"}}
     color="white"
     bg="transparent"
     _hover={{
