@@ -166,7 +166,7 @@ const Community = () => {
                   />
                 )}
                 <Heading fontSize={{base: "12px", md: "20px"}}>{report.title || 'Untitled Report'}</Heading>
-                <Text fontSize="sm" color="gray.600" mt={2}>
+                <Text fontSize={{base: "12px", md: "16px"}} color="gray.600" mt={2}>
                   {report.description || 'No description provided.'}
                 </Text>
                 <Text

@@ -373,13 +373,14 @@ export default function LostAndFound() {
       <Button
         background="#34495e"
         color="white"
+        w={{base: "100%", md: "250px"}}
         mb={8}
         _hover={{ bg: '#3c5a70' }}
         onClick={() => {
           resetForm();
           openFormModal();
         }}
-        fontSize={{base: "8px", md: "16px"}}
+        fontSize={{base: "12px", md: "16px"}}
       >
         Report Lost or Found Item
       </Button>
@@ -435,7 +436,7 @@ export default function LostAndFound() {
       {(lostItems.length === 0 && foundItems.length === 0) ? (
         <Box textAlign="center" py={10} w="100%">
           <Icon as={SlFolderAlt} boxSize={55} color="gray.400" mt={4} />
-          <Text fontSize="lg" color="gray.600" mt={4}>
+          <Text fontSize={{base: "12px", md: "16px"}} color="gray.600" mt={4}>
             No lost or found items have been reported yet.
           </Text>
         </Box>

@@ -63,6 +63,8 @@ const HomePage = () => {
             bg="white"
             variant="outline"
             size="lg"
+            w={{base: "100%", md: "250px"}}
+            fontSize={{base: "16px", md: "20px"}}
             _hover={{ bg: 'transparent', color: 'white' }}
             onClick={() => navigate('/lost-and-found')}
           >
