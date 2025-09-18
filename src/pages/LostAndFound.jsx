@@ -39,6 +39,7 @@ import {
 } from '@chakra-ui/react';
 import { useState, useEffect, useRef } from 'react';
 import { db, auth } from '../firebase';
+import { limit, startAfter, getCountFromServer } from 'firebase/firestore';
 import {
   collection,
   addDoc,
@@ -52,6 +53,9 @@ import {
 } from 'firebase/firestore';
 import { SlFolderAlt } from "react-icons/sl";
 import { FiMoreVertical } from "react-icons/fi";
+
+const CACHE_KEY_LOST = 'lostItems';
+const CACHE_KEY_FOUND = 'foundItems';
 
 export default function LostAndFound() {
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -77,10 +81,15 @@ export default function LostAndFound() {
   const [lostItems, setLostItems] = useState([]);
   const [foundItems, setFoundItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [itemsPerPage] = useState(10);
+  const [lastVisibleLost, setLastVisibleLost] = useState(null);
+  const [lastVisibleFound, setLastVisibleFound] = useState(null);
+  const [hasMoreLost, setHasMoreLost] = useState(true);
+  const [hasMoreFound, setHasMoreFound] = useState(true);
 
   const currentUser = auth.currentUser;
 
-  const fetchItems = async () => {
+  const fetchItems = async (loadMore = false) => {
     if (!currentUser) {
       setLostItems([]);
       setFoundItems([]);
@@ -88,17 +97,31 @@ export default function LostAndFound() {
       return;
     }
 
+    const cachedLostItems = localStorage.getItem(CACHE_KEY_LOST);
+    const cachedFoundItems = localStorage.getItem(CACHE_KEY_FOUND);
+
+    if (!loadMore && cachedLostItems && cachedFoundItems) {
+      setLostItems(JSON.parse(cachedLostItems));
+      setFoundItems(JSON.parse(cachedFoundItems));
+      return;
+    }
+
     setLoading(true);
     try {
-      const lostQuery = query(
+      let lostQuery = query(
         collection(db, 'lostItems'),
         where('userId', '==', currentUser.uid),
-        orderBy('createdAt', 'desc')
+        orderBy('createdAt', 'desc'),
+        ...(loadMore && lastVisibleLost ? [startAfter(lastVisibleLost)] : []),
+        limit(itemsPerPage)
       );
-      const foundQuery = query(
+
+      let foundQuery = query(
         collection(db, 'foundItems'),
         where('userId', '==', currentUser.uid),
-        orderBy('createdAt', 'desc')
+        orderBy('createdAt', 'desc'),
+        ...(loadMore && lastVisibleFound ? [startAfter(lastVisibleFound)] : []),
+        limit(itemsPerPage)
       );
 
       const [lostSnapshot, foundSnapshot] = await Promise.all([
@@ -106,12 +129,31 @@ export default function LostAndFound() {
         getDocs(foundQuery),
       ]);
 
-      setLostItems(lostSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setFoundItems(foundSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      const newLostItems = lostSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const newFoundItems = foundSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      setLostItems(loadMore ? [...lostItems, ...newLostItems] : newLostItems);
+      setFoundItems(loadMore ? [...foundItems, ...newFoundItems] : newFoundItems);
+
+      localStorage.setItem(CACHE_KEY_LOST, JSON.stringify(loadMore ? [...lostItems, ...newLostItems] : newLostItems));
+      localStorage.setItem(CACHE_KEY_FOUND, JSON.stringify(loadMore ? [...foundItems, ...newFoundItems] : newFoundItems));
+
+
+      setLastVisibleLost(lostSnapshot.docs.length > 0 ? lostSnapshot.docs[lostSnapshot.docs.length - 1] : null);
+      setLastVisibleFound(foundSnapshot.docs.length > 0 ? foundSnapshot.docs[foundSnapshot.docs.length - 1] : null);
+
+      setHasMoreLost(lostSnapshot.docs.length === itemsPerPage);
+      setHasMoreFound(foundSnapshot.docs.length === itemsPerPage);
+
+
     } catch (error) {
       console.error('Error fetching items:', error);
     }
     setLoading(false);
+  };
+
+  const loadMore = () => {
+    fetchItems(true);
   };
 
   useEffect(() => {
@@ -446,7 +488,9 @@ export default function LostAndFound() {
           {foundItems.length > 0 && renderItems(foundItems, "green.50", "Found Items", "foundItems")}
         </SimpleGrid>
       )}
-
+      <Button onClick={loadMore} disabled={loading || (!hasMoreLost && !hasMoreFound)}>
+        {loading ? 'Loading...' : 'Load More'}
+      </Button>
       <AlertDialog
         isOpen={isDeleteOpen}
         leastDestructiveRef={cancelRef}
