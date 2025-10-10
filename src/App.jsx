@@ -8,6 +8,7 @@ import LostAndFound from './pages/LostAndFound';
 import Community from './pages/Community';
 import { Box, Flex } from '@chakra-ui/react';
 import LoginSignup from './pages/LoginSignup';
+import NearbyPlacesFinder from './pages/NearByPlaces';
 
 function App() {
   const location = useLocation();
@@ -21,6 +22,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/home" element={<Home />} />
           <Route path="/lost-and-found" element={<LostAndFound />} />
+          <Route path="/places" element={<NearbyPlacesFinder />} />
           <Route path="/community" element={<Community />} />
           <Route path="/login/signup" element={<LoginSignup />} />
         </Routes>

@@ -15,6 +15,7 @@ import { auth } from '../firebase'; // adjust the path to your Firebase config
 const Links = [
   { name: 'Home', path: '/home' },
   { name: 'Lost & Found', path: '/lost-and-found' },
+  { name: 'Places', path: '/places' },
   { name: 'Community', path: '/community' },
 ];
 
