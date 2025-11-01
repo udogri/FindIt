@@ -1,4 +1,3 @@
-// pages/HomePage.jsx
 import React from 'react';
 import {
   Box,
@@ -7,8 +6,8 @@ import {
   VStack,
   Stack,
   Button,
-  useColorModeValue,
   Image,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase';
@@ -20,7 +19,6 @@ const MotionBox = motion(Box);
 const HomePage = () => {
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
-  const bg = useColorModeValue('gray.50', 'gray.800');
   const featureBg = useColorModeValue('white', 'gray.700');
 
   const handleFeatureClick = (index) => {
@@ -40,86 +38,75 @@ const HomePage = () => {
   };
 
   return (
-    <Box bg={bg} minH="100vh" p={{ base: 4, md: 10 }}>
-      <VStack spacing={8} align="stretch">
+    <Box bg="neutral.50" minH="100vh" p={{ base: 4, md: 10 }}>
+      <VStack spacing={10} align="stretch">
         {/* Hero Section */}
         <Box
           textAlign="center"
-          py={10}
+          py={16}
           px={6}
-          bg="#34495e"
+          bg="brand.600"
           color="white"
-          borderRadius="lg"
+          borderRadius="2xl"
+          shadow="xl"
         >
-          <Heading fontSize={{base: "18px", md: "24px"}}
->
+          <Heading fontSize={{ base: "2xl", md: "4xl" }} fontWeight="extrabold">
             Welcome, {user?.displayName || 'User'} 👋
           </Heading>
-          <Text fontSize={{base: "12px", md: "16px"}} mt={4} maxW="600px" mx="auto">
+          <Text fontSize={{ base: "md", md: "lg" }} mt={4} maxW="700px" mx="auto" color="whiteAlpha.800">
             This is <b>FindIt</b> — a platform that connects people in your locality to
             report lost items or post found belongings. Let's help each other!
           </Text>
           <Button
-            mt={6}
-            bg="white"
-            variant="outline"
-            w={{base: "100%", md: "250px"}}
-            fontSize={{base: "12px", md: "16px"}}
-            _hover={{ bg: 'transparent', color: 'white' }}
+            mt={8}
+            colorScheme="accent"
+            size="lg"
+            px={8}
+            py={6}
             onClick={() => navigate('/lost-and-found')}
           >
             Get Started
           </Button>
         </Box>
-        {/* Call-to-action Section
-        <Box textAlign="center" >
-          <Heading fontSize={{base: "18px", md: "24px"}} mb={3}>
-            Start Making a Difference
-          </Heading>
-          <Text mb={4} fontSize={{base: "12px", md: "16px"}}>Post a missing or found item to help others in your area.</Text>
-          
-        </Box> */}
 
         {/* Feature Highlights */}
         <Stack
           direction={{ base: 'column', md: 'row' }}
-          spacing={6}
-          justify="space-between"
+          spacing={8}
+          justify="center"
+          align="stretch"
         >
           {features.map((f, i) => (
             <MotionBox
               key={i}
               bg={featureBg}
-              p={6}
-              borderRadius="xl"
-              shadow="md"
+              p={8}
+              borderRadius="2xl"
+              shadow="lg"
               textAlign="center"
               flex="1"
               cursor="pointer"
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.03, boxShadow: '2xl' }}
               transition={{ duration: 0.3 }}
               onClick={() => handleFeatureClick(i)}
             >
               <Image
                 src={f.image}
                 alt={f.title}
-                boxSize="100px"
+                boxSize="120px"
                 mx="auto"
-                w={{base: "80px", md: "100px"}}
-                mb={4}
+                mb={6}
                 objectFit="contain"
               />
-              <Heading fontSize={{base: "12px", md: "16px"}} mb={2}>
+              <Heading fontSize={{ base: "lg", md: "xl" }} mb={3} color="brand.700">
                 {f.title}
               </Heading>
-              <Text fontSize={{base: "10px", md: "14px"}} color="gray.600">
+              <Text fontSize={{ base: "sm", md: "md" }} color="neutral.600">
                 {f.text}
               </Text>
             </MotionBox>
           ))}
         </Stack>
-
-        
       </VStack>
     </Box>
   );

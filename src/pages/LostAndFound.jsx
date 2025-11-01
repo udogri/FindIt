@@ -27,19 +27,17 @@ import {
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
-  Spinner,
-  Center,
-  Flex,
+  Tag,
   Icon,
+  IconButton,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
-  IconButton,
 } from '@chakra-ui/react';
 import { useState, useEffect, useRef } from 'react';
 import { db, auth } from '../firebase';
-import { limit, startAfter, getCountFromServer } from 'firebase/firestore';
+import { limit, startAfter } from 'firebase/firestore';
 import {
   collection,
   addDoc,
@@ -53,9 +51,6 @@ import {
 } from 'firebase/firestore';
 import { SlFolderAlt } from "react-icons/sl";
 import { FiMoreVertical } from "react-icons/fi";
-
-const CACHE_KEY_LOST = 'lostItems';
-const CACHE_KEY_FOUND = 'foundItems';
 
 export default function LostAndFound() {
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -97,15 +92,6 @@ export default function LostAndFound() {
       return;
     }
 
-    const cachedLostItems = localStorage.getItem(CACHE_KEY_LOST);
-    const cachedFoundItems = localStorage.getItem(CACHE_KEY_FOUND);
-
-    if (!loadMore && cachedLostItems && cachedFoundItems) {
-      setLostItems(JSON.parse(cachedLostItems));
-      setFoundItems(JSON.parse(cachedFoundItems));
-      return;
-    }
-
     setLoading(true);
     try {
       let lostQuery = query(
@@ -132,19 +118,14 @@ export default function LostAndFound() {
       const newLostItems = lostSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       const newFoundItems = foundSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      setLostItems(loadMore ? [...lostItems, ...newLostItems] : newLostItems);
-      setFoundItems(loadMore ? [...foundItems, ...newFoundItems] : newFoundItems);
-
-      localStorage.setItem(CACHE_KEY_LOST, JSON.stringify(loadMore ? [...lostItems, ...newLostItems] : newLostItems));
-      localStorage.setItem(CACHE_KEY_FOUND, JSON.stringify(loadMore ? [...foundItems, ...newFoundItems] : newFoundItems));
-
+      setLostItems(prev => loadMore ? [...prev, ...newLostItems] : newLostItems);
+      setFoundItems(prev => loadMore ? [...prev, ...newFoundItems] : newFoundItems);
 
       setLastVisibleLost(lostSnapshot.docs.length > 0 ? lostSnapshot.docs[lostSnapshot.docs.length - 1] : null);
       setLastVisibleFound(foundSnapshot.docs.length > 0 ? foundSnapshot.docs[foundSnapshot.docs.length - 1] : null);
 
       setHasMoreLost(lostSnapshot.docs.length === itemsPerPage);
       setHasMoreFound(foundSnapshot.docs.length === itemsPerPage);
-
 
     } catch (error) {
       console.error('Error fetching items:', error);
@@ -251,9 +232,9 @@ export default function LostAndFound() {
           createdAt: new Date(),
           location: userLocation.latitude && userLocation.longitude
             ? {
-                latitude: userLocation.latitude,
-                longitude: userLocation.longitude,
-              }
+              latitude: userLocation.latitude,
+              longitude: userLocation.longitude,
+            }
             : null,
         });
       }
@@ -274,9 +255,50 @@ export default function LostAndFound() {
     }
   };
 
+  const handleMarkAsResolved = async (itemId, collectionName, userId, itemType) => {
+    if (!currentUser || userId !== currentUser.uid) {
+      toast({
+        title: 'Permission denied.',
+        description: 'You can only mark your own items as resolved.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+        position: 'top',
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const docRef = doc(db, collectionName, itemId);
+      await updateDoc(docRef, {
+        status: 'resolved',
+      });
+      await fetchItems();
+      toast({
+        title: `Item marked as ${itemType === 'lost' ? 'Found' : 'Returned'}.`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+        position: 'top',
+      });
+    } catch (error) {
+      console.error('Error marking item as resolved:', error);
+      toast({
+        title: 'Update failed',
+        description: 'An error occurred while updating item status.',
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+        position: 'top',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleEdit = (item, collectionName) => {
     if (!currentUser || item.userId !== currentUser.uid) {
-      setLoading(false);
       toast({
         title: 'Permission denied.',
         description: 'You can only edit your own items.',
@@ -399,8 +421,16 @@ export default function LostAndFound() {
                 <MenuItem onClick={() => handleDelete(item.id, collectionName, item.userId)} color="red.500">
                   Delete
                 </MenuItem>
+                <MenuItem onClick={() => handleMarkAsResolved(item.id, collectionName, item.userId, item.type)}>
+                  Mark as {item.type === 'lost' ? 'Found' : 'Returned'}
+                </MenuItem>
               </MenuList>
             </Menu>
+          )}
+          {item.status === 'resolved' && (
+            <Tag size="sm" colorScheme="green" alignSelf="flex-end" mt={2}>
+              {item.type === 'lost' ? 'Found' : 'Returned'}
+            </Tag>
           )}
         </Box>
       ))}
@@ -408,53 +438,62 @@ export default function LostAndFound() {
   );
 
   return (
-    <Box p={8} textAlign="center">
-      <Heading mb={4} fontSize={{base: "20px", md: "40px"}}>Lost & Found - My Reports</Heading>
-      <Text mb={8} fontSize={{base: "12px", md: "20px"}} >Report lost and found items in your community.</Text>
+    <Box p={8} textAlign="center" bg="neutral.50" minH="100vh">
+      <Heading mb={4} fontSize={{ base: "2xl", md: "4xl" }} color="brand.700" fontWeight="extrabold">
+        Lost & Found - My Reports
+      </Heading>
+      <Text mb={8} fontSize={{ base: "md", md: "lg" }} color="neutral.700">
+        Report lost and found items in your community.
+      </Text>
 
       <Button
-        background="#34495e"
-        color="white"
-        w={{base: "100%", md: "250px"}}
+        colorScheme="brand"
+        w={{ base: "100%", md: "250px" }}
         mb={8}
-        _hover={{ bg: '#3c5a70' }}
         onClick={() => {
           resetForm();
           openFormModal();
         }}
-        fontSize={{base: "12px", md: "16px"}}
+        size="lg"
       >
         Report Lost or Found Item
       </Button>
 
       <Modal isOpen={isFormOpen} onClose={resetForm} size="lg" scrollBehavior="inside">
         <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>{editMode ? 'Edit Item' : 'Report Lost or Found Item'}</ModalHeader>
+        <ModalContent borderRadius="xl">
+          <ModalHeader bg="neutral.50" borderBottomWidth="1px" borderColor="neutral.200" color="brand.700" fontWeight="extrabold">
+            {editMode ? 'Edit Item' : 'Report Lost or Found Item'}
+          </ModalHeader>
           <ModalCloseButton />
-          <ModalBody>
+          <ModalBody p={6}>
             <VStack spacing={4}>
-              <FormControl><FormLabel>Type</FormLabel>
-                <Select name="type" value={formData.type} onChange={handleChange}>
+              <FormControl>
+                <FormLabel color="neutral.700">Type</FormLabel>
+                <Select name="type" value={formData.type} onChange={handleChange} borderRadius="lg">
                   <option value="lost">Lost</option>
                   <option value="found">Found</option>
                 </Select>
               </FormControl>
-              <FormControl><FormLabel>Title</FormLabel>
-                <Input name="title" value={formData.title} onChange={handleChange} />
+              <FormControl>
+                <FormLabel color="neutral.700">Title</FormLabel>
+                <Input name="title" value={formData.title} onChange={handleChange} borderRadius="lg" />
               </FormControl>
-              <FormControl><FormLabel>Last seen</FormLabel>
-                <Textarea name="lastSeen" value={formData.lastSeen} onChange={handleChange} />
+              <FormControl>
+                <FormLabel color="neutral.700">Last seen</FormLabel>
+                <Textarea name="lastSeen" value={formData.lastSeen} onChange={handleChange} borderRadius="lg" />
               </FormControl>
-              <FormControl><FormLabel>Description</FormLabel>
-                <Textarea name="description" value={formData.description} onChange={handleChange} />
+              <FormControl>
+                <FormLabel color="neutral.700">Description</FormLabel>
+                <Textarea name="description" value={formData.description} onChange={handleChange} borderRadius="lg" />
               </FormControl>
-              <FormControl><FormLabel>Upload Image</FormLabel>
-                <Input type="file" name="image" accept="image/*" onChange={handleChange} />
+              <FormControl>
+                <FormLabel color="neutral.700">Upload Image</FormLabel>
+                <Input type="file" name="image" accept="image/*" onChange={handleChange} p={1} />
               </FormControl>
 
               {(formData.image || formData.imageUrl) && (
-                <Box boxSize="150px" mt={2}>
+                <Box boxSize="150px" mt={2} shadow="md" borderRadius="md">
                   <Image
                     src={formData.image ? URL.createObjectURL(formData.image) : formData.imageUrl}
                     alt="Preview"
@@ -466,59 +505,49 @@ export default function LostAndFound() {
               )}
             </VStack>
           </ModalBody>
-          <ModalFooter>
-            <Button onClick={handleSubmit} colorScheme="blue" isLoading={loading} mr={3}>
+          <ModalFooter bg="neutral.50" borderTopWidth="1px" borderColor="neutral.200">
+            <Button onClick={handleSubmit} colorScheme="brand" isLoading={loading} mr={3}>
               {editMode ? 'Update' : 'Submit'}
             </Button>
-            <Button variant="ghost" onClick={resetForm}>Cancel</Button>
+            <Button variant="outline" onClick={resetForm}>Cancel</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
 
       {(lostItems.length === 0 && foundItems.length === 0) ? (
-        <Box textAlign="center" py={10} w="100%">
-          <Icon as={SlFolderAlt} boxSize={55} color="gray.400" mt={4} />
-          <Text fontSize={{base: "12px", md: "16px"}} color="gray.600" mt={4}>
+        <VStack textAlign="center" py={10} w="100%" bg="white" borderRadius="xl" shadow="md">
+          <Icon as={SlFolderAlt} boxSize={65} color="neutral.400" mt={4} />
+          <Text fontSize={{ base: "md", md: "lg" }} color="neutral.600" mt={4}>
             No lost or found items have been reported yet.
           </Text>
-        </Box>
+        </VStack>
       ) : (
         <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10} w="100%">
           {lostItems.length > 0 && renderItems(lostItems, "red.50", "Lost Items", "lostItems")}
           {foundItems.length > 0 && renderItems(foundItems, "green.50", "Found Items", "foundItems")}
         </SimpleGrid>
       )}
-      <Button onClick={loadMore} disabled={loading || (!hasMoreLost && !hasMoreFound)}>
-        {loading ? 'Loading...' : 'Load More'}
-      </Button>
+
+      {(hasMoreLost || hasMoreFound) && (
+        <Button onClick={loadMore} disabled={loading} mt={8} colorScheme="brand" variant="outline">
+          {loading ? 'Loading...' : 'Load More'}
+        </Button>
+      )}
+
       <AlertDialog
         isOpen={isDeleteOpen}
         leastDestructiveRef={cancelRef}
-        onClose={() => {
-          setPendingDelete(null);
-          closeDeleteModal();
-        }}
+        onClose={closeDeleteModal}
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Item
-            </AlertDialogHeader>
+            <AlertDialogHeader>Delete Confirmation</AlertDialogHeader>
             <AlertDialogBody>
               Are you sure you want to delete this item? This action cannot be undone.
             </AlertDialogBody>
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={closeDeleteModal}>
-                Cancel
-              </Button>
-              <Button
-                colorScheme="red"
-                isLoading={loading}
-                onClick={confirmDelete}
-                ml={3}
-              >
-                Delete
-              </Button>
+              <Button ref={cancelRef} onClick={closeDeleteModal}>Cancel</Button>
+              <Button colorScheme="red" onClick={confirmDelete} ml={3}>Delete</Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialogOverlay>

@@ -8,13 +8,21 @@ import {
   VStack,
   useDisclosure,
   Spinner,
+  Tag,
+  Flex,
+  Icon,
 } from '@chakra-ui/react';
 import { getDocs, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 import ReportDetailsModal from '../components/ReportDetails';
+import { SlFolderAlt } from "react-icons/sl";
+import { formatDistanceToNowStrict } from 'date-fns';
+import { useLocation } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore'; // Import getDoc and doc
 
 const Community = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const location = useLocation(); // Get current URL location
 
   const [allReports, setAllReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
@@ -27,6 +35,42 @@ const Community = () => {
       onOpen();
     }
   };
+
+  // Effect to open modal if reportId is in URL
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const reportId = queryParams.get('reportId');
+
+    const fetchAndOpenReport = async (id) => {
+      setLoading(true);
+      try {
+        const lostDoc = await getDoc(doc(db, 'lostItems', id));
+        const foundDoc = await getDoc(doc(db, 'foundItems', id));
+
+        let reportData = null;
+        if (lostDoc.exists()) {
+          reportData = { id: lostDoc.id, ...lostDoc.data(), type: 'lost', status: lostDoc.data().status || 'Lost' };
+        } else if (foundDoc.exists()) {
+          reportData = { id: foundDoc.id, ...foundDoc.data(), type: 'found', status: foundDoc.data().status || 'Found' };
+        }
+
+        if (reportData) {
+          setSelectedReport(reportData);
+          onOpen();
+        } else {
+          console.warn('Report not found for ID:', id);
+        }
+      } catch (error) {
+        console.error('Error fetching report for modal:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (reportId) {
+      fetchAndOpenReport(reportId);
+    }
+  }, [location.search, onOpen]); // Re-run when URL search params change
 
   // Haversine formula to calculate distance in km
   const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
@@ -72,13 +116,15 @@ const Community = () => {
         const lostData = lostSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-          status: 'Lost',
+          type: 'lost', // Add type for consistent handling
+          status: doc.data().status || 'Lost', // Use actual status or default to 'Lost'
         }));
 
         const foundData = foundSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-          status: 'Found',
+          type: 'found', // Add type for consistent handling
+          status: doc.data().status || 'Found', // Use actual status or default to 'Found'
         }));
 
         let combined = [...lostData, ...foundData];
@@ -119,40 +165,45 @@ const Community = () => {
   }, [userLocation]);
 
   return (
-    <Box px={8} py={12} bg="gray.50">
-      <VStack spacing={6} textAlign="center">
-        <Heading fontSize={{base: "20px", md: "40px"}}>Join the Community</Heading>
-        <Text fontSize={{base: "12px", md: "20px"}} color="gray.600" maxW="600px">
+    <Box px={{ base: 4, md: 8 }} py={12} bg="neutral.50" minH="100vh">
+      <VStack spacing={6} textAlign="center" mb={10}>
+        <Heading fontSize={{ base: "2xl", md: "4xl" }} fontWeight="extrabold" color="brand.700">
+          Join the Community
+        </Heading>
+        <Text fontSize={{ base: "md", md: "lg" }} color="neutral.700" maxW="700px">
           Help reunite people with their lost belongings. Whether you've found something or lost an item, we're here to make connection easier.
         </Text>
       </VStack>
 
       <Box mt={12}>
-        <Heading fontSize={{base: "12px", md: "20px"}} mb={6}>Recent Reports Nearby</Heading>
+        <Heading fontSize={{ base: "xl", md: "2xl" }} mb={6} color="neutral.800" textAlign="center">Recent Reports Nearby</Heading>
 
         {loading ? (
           <Box textAlign="center" py={10}>
-            <Spinner size="xl" />
-            <Text mt={4} color="gray.500">Loading reports...</Text>
+            <Spinner size="xl" color="brand.500" />
+            <Text mt={4} color="neutral.600">Loading reports...</Text>
           </Box>
         ) : allReports.length === 0 ? (
-          <Text textAlign="center" color="gray.600" mt={8}>
-            No recent reports in your area.
-          </Text>
+          <VStack textAlign="center" py={10} w="100%">
+            <Icon as={SlFolderAlt} boxSize={65} color="neutral.400" mt={4} />
+            <Text fontSize={{ base: "md", md: "lg" }} color="neutral.600" mt={4}>
+              No recent reports in your area.
+            </Text>
+          </VStack>
         ) : (
-          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
             {allReports.map((report) => (
               <Box
                 key={report.id}
                 bg="white"
-                p={4}
-                shadow="md"
-                borderRadius="md"
+                p={6}
+                shadow="lg"
+                borderRadius="xl"
                 cursor="pointer"
-                _hover={{ boxShadow: 'lg' }}
-                borderLeft="6px solid"
-                borderColor={report.status === 'Lost' ? 'red.400' : 'green.400'}
+                _hover={{ boxShadow: '2xl', transform: 'translateY(-5px)', transition: '0.2s' }}
                 onClick={() => openDetails(report)}
+                position="relative"
+                overflow="hidden"
               >
                 {report.imageUrl && (
                   <Image
@@ -161,22 +212,30 @@ const Community = () => {
                     objectFit="cover"
                     w="100%"
                     h="200px"
-                    borderRadius="md"
+                    borderRadius="lg"
                     mb={4}
                   />
                 )}
-                <Heading fontSize={{base: "12px", md: "20px"}}>{report.title || 'Untitled Report'}</Heading>
-                <Text fontSize={{base: "12px", md: "16px"}} color="gray.600" mt={2}>
+                <Flex justifyContent="space-between" alignItems="center" mb={2}>
+                  <Heading fontSize={{ base: "md", md: "lg" }} color="brand.700" noOfLines={1}>{report.title || 'Untitled Report'}</Heading>
+                  <Tag
+                    size="md"
+                    colorScheme={report.status === 'resolved' ? 'green' : (report.type === 'lost' ? 'red' : 'green')}
+                    variant="solid"
+                    borderRadius="full"
+                    px={3}
+                  >
+                    {report.status === 'resolved' ? (report.type === 'lost' ? 'Found' : 'Returned') : report.status}
+                  </Tag>
+                </Flex>
+                <Text fontSize={{ base: "sm", md: "md" }} color="neutral.700" noOfLines={2} mb={3}>
                   {report.description || 'No description provided.'}
                 </Text>
-                <Text
-                  fontSize="xs"
-                  mt={2}
-                  fontWeight="bold"
-                  color={report.status === 'Lost' ? 'red.500' : 'green.500'}
-                >
-                  Status: {report.status}
-                </Text>
+                {report.createdAt?.toDate && (
+                  <Text fontSize="xs" color="neutral.500">
+                    Posted {formatDistanceToNowStrict(report.createdAt.toDate(), { addSuffix: true })}
+                  </Text>
+                )}
               </Box>
             ))}
           </SimpleGrid>
@@ -184,13 +243,6 @@ const Community = () => {
       </Box>
 
       <ReportDetailsModal isOpen={isOpen} onClose={onClose} report={selectedReport} />
-
-      {/* <Box mt={16} textAlign="center">
-        <Heading size="md" mb={4}>Your Help Matters</Heading>
-        <Text maxW="600px" mx="auto" color="gray.600">
-          Every shared post, every report, every watchful eye counts. Be part of the solution — help others and let others help you.
-        </Text>
-      </Box> */}
     </Box>
   );
 };

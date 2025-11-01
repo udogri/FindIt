@@ -15,6 +15,7 @@ import {
   Select,
   useToast,
   Stack,
+  Flex,
 } from "@chakra-ui/react";
 import {
   FaMapMarkerAlt,
@@ -35,6 +36,21 @@ import {
 } from "react-icons/fa";
 
 const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY;
+
+// Haversine formula to calculate distance in km
+const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Earth radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
 
 export default function NearbyPlaces() {
   const [query, setQuery] = useState("");
@@ -170,7 +186,14 @@ export default function NearbyPlaces() {
       if (!res.ok) throw new Error("Geoapify request failed");
 
       const data = await res.json();
-      const results = data.features || [];
+      let results = data.features || [];
+
+      // Filter out places with unknown or unnamed locations
+      results = results.filter(place => {
+        const name = place.properties.name;
+        const address = place.properties.address_line2 || place.properties.address_line1 || place.properties.formatted;
+        return name && name !== "Unnamed Place" && address && address !== "No address available";
+      });
 
       if (results.length === 0) {
         toast({
@@ -213,17 +236,18 @@ export default function NearbyPlaces() {
   };
 
   return (
-    <Box p={[4, 6, 8]} maxW="1200px" mx="auto">
-      <VStack spacing={6} align="stretch">
+    <Box p={[4, 6, 8]} maxW="1200px" mx="auto" bg="neutral.50" minH="100vh">
+      <VStack spacing={8} align="stretch">
         <Heading
-          size={["md", "lg"]}
+          size={{ base: "xl", md: "2xl" }}
           textAlign="center"
-          color="green.600"
+          color="brand.700"
           lineHeight="1.3"
+          fontWeight="extrabold"
         >
           🌍 Find Places Near You{" "}
           {city && (
-            <Text as="span" fontSize={["sm", "md"]}>
+            <Text as="span" fontSize={{ base: "md", md: "xl" }} color="accent.600">
               in {city}
             </Text>
           )}
@@ -231,25 +255,31 @@ export default function NearbyPlaces() {
 
         {/* Search Bar - Responsive Stack */}
         <Stack
-          direction={["column", "row"]}
-          spacing={3}
+          direction={{ base: "column", md: "row" }}
+          spacing={4}
           align="stretch"
           justify="center"
+          p={4}
+          bg="white"
+          borderRadius="xl"
+          shadow="md"
         >
           <Input
             placeholder="Search by name (e.g. pizza, gym, barber)..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            borderRadius="full"
+            borderRadius="lg"
             flex="1"
+            size="lg"
             onKeyDown={(e) => e.key === "Enter" && findPlaces()}
           />
           <Select
             placeholder="Select Category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            borderRadius="full"
-            w={["100%", "200px"]}
+            borderRadius="lg"
+            w={{ base: "100%", md: "250px" }}
+            size="lg"
           >
             {Object.keys(categoryMap)
               .filter((k) => k !== "")
@@ -260,12 +290,14 @@ export default function NearbyPlaces() {
               ))}
           </Select>
           <Button
-            colorScheme="green"
-            borderRadius="full"
+            colorScheme="brand"
+            borderRadius="lg"
             leftIcon={<FaSearch />}
             onClick={findPlaces}
             isDisabled={loading}
-            w={["100%", "auto"]}
+            w={{ base: "100%", md: "auto" }}
+            size="lg"
+            px={8}
           >
             {loading ? "Searching..." : "Search"}
           </Button>
@@ -273,16 +305,17 @@ export default function NearbyPlaces() {
 
         {/* Loading spinner */}
         {loading && (
-          <HStack justify="center" py={4}>
-            <Spinner size="lg" color="green.500" />
+          <HStack justify="center" py={6}>
+            <Spinner size="xl" color="brand.500" />
+            <Text color="neutral.600">Finding places...</Text>
           </HStack>
         )}
 
         {/* Results grid */}
         {!loading && places.length > 0 && (
           <SimpleGrid
-            columns={[1, 2, 3]}
-            spacing={[3, 5]}
+            columns={{ base: 1, md: 2, lg: 3 }}
+            spacing={6}
             mt={4}
             w="full"
             alignItems="stretch"
@@ -298,41 +331,59 @@ export default function NearbyPlaces() {
                 ) || "default";
 
               const PlaceIcon = iconMap[iconKey] || iconMap.default;
+              const placeLat = place.properties.lat || place.geometry.coordinates[1];
+              const placeLon = place.properties.lon || place.geometry.coordinates[0];
+              const distance = location && placeLat && placeLon
+                ? (
+                    Math.round(
+                      getDistanceFromLatLonInKm(
+                        location.lat,
+                        location.lon,
+                        placeLat,
+                        placeLon
+                      ) * 10
+                    ) / 10
+                  ).toFixed(1)
+                : null;
 
               return (
                 <Card
                   key={i}
                   borderRadius="xl"
-                  shadow="md"
+                  shadow="lg"
                   _hover={{
-                    transform: "scale(1.02)",
+                    transform: "translateY(-5px)",
                     transition: "0.2s",
                     cursor: "pointer",
-                    shadow: "lg",
+                    shadow: "xl",
                   }}
                   h="full"
                   onClick={() => openInMaps(place)}
                 >
-                  <CardBody>
-                    <HStack spacing={3} align="start">
-                      <Icon as={PlaceIcon} boxSize={6} color="green.500" />
-                      <VStack align="start" spacing={1}>
-                        <Text fontWeight="bold" noOfLines={1}>
-                          {place.properties.name || "Unnamed Place"}
+                  <CardBody p={6}>
+                    <HStack spacing={4} align="start">
+                      <Icon as={PlaceIcon} boxSize={7} color="brand.500" />
+                      <VStack align="start" spacing={1} flex="1">
+                        <Text fontWeight="bold" fontSize="lg" noOfLines={1} color="neutral.800">
+                          {place.properties.name}
                         </Text>
-                        <HStack align="start">
-                          <Icon as={FaMapMarkerAlt} color="gray.500" mt="2px" />
+                        <HStack align="start" spacing={2}>
+                          <Icon as={FaMapMarkerAlt} color="neutral.500" mt="2px" />
                           <Text
                             fontSize="sm"
-                            color="gray.600"
+                            color="neutral.600"
                             noOfLines={[2, 3]}
                           >
                             {place.properties.address_line2 ||
                               place.properties.address_line1 ||
-                              place.properties.formatted ||
-                              "No address available"}
+                              place.properties.formatted}
                           </Text>
                         </HStack>
+                        {distance && (
+                          <Text fontSize="sm" color="neutral.500">
+                            {distance} km away
+                          </Text>
+                        )}
                       </VStack>
                     </HStack>
                   </CardBody>
@@ -343,9 +394,12 @@ export default function NearbyPlaces() {
         )}
 
         {!loading && places.length === 0 && (
-          <Text textAlign="center" color="gray.500">
-            Try searching for a place name or select a category.
-          </Text>
+          <Flex direction="column" align="center" justify="center" py={10} bg="white" borderRadius="xl" shadow="md">
+            <Icon as={FaSearch} boxSize={12} color="neutral.400" mb={4} />
+            <Text textAlign="center" color="neutral.600" fontSize="lg">
+              Try searching for a place name or select a category.
+            </Text>
+          </Flex>
         )}
       </VStack>
     </Box>

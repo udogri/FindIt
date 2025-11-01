@@ -10,7 +10,8 @@ import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons';
 import { MdLogout } from 'react-icons/md';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
-import { auth } from '../firebase'; // adjust the path to your Firebase config
+import { auth } from '../firebase';
+import NotificationBell from './NotificationBell';
 
 const Links = [
   { name: 'Home', path: '/home' },
@@ -23,11 +24,13 @@ const NavLink = ({ name, path, onClose }) => (
   <Link
     as={RouterLink}
     to={path}
-    px={2}
-    py={1}
+    px={3}
+    py={2}
     rounded="md"
-    fontSize={{base: "12px", md: "16px"}}
-    _hover={{ bg: '#3c5a70' }}
+    fontSize="md"
+    fontWeight="medium"
+    color="white"
+    _hover={{ bg: 'brand.600' }}
     onClick={onClose}
   >
     {name}
@@ -48,57 +51,49 @@ export default function Header() {
   };
 
   return (
-    <Box bg="#34495e" px={4} position="relative">
+    <Box bg="brand.700" px={4} position="relative" shadow="md">
       <Flex h={16} align="center" justifyContent="space-between">
-        <Box color="white" fontWeight="bold">FindIt</Box>
+        <Box color="white" fontWeight="bold" fontSize="xl">FindIt</Box>
         <IconButton
           size="md"
           icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
           aria-label="Open Menu"
           display={{ md: 'none' }}
           onClick={isOpen ? onClose : onOpen}
+          color="white"
+          bg="transparent"
+          _hover={{ bg: 'brand.600' }}
         />
         <HStack
-          color="white"
-          fontWeight="600"
-          background="#34495e"
+          spacing={4}
           alignItems="center"
           display={{ base: 'none', md: 'flex' }}
         >
           {Links.map((link) => (
             <NavLink key={link.name} name={link.name} path={link.path} />
           ))}
-          <Flex  flex="1">
+          <NotificationBell />
           <Menu>
-  <MenuButton
-    as={IconButton}
-    icon={<MdLogout />}
-    fontSize={{base: "12px", md: "16px"}}
-    color="white"
-    bg="transparent"
-    _hover={{
-      transform: 'scale(1.2)',
-      transition: 'transform 0.2s ease-in-out',
-      bg: 'transparent',
-    }}
-    _focus={{ boxShadow: 'none', bg: 'transparent' }}
-    _active={{ bg: 'transparent' }}
-    _expanded={{ bg: 'transparent' }} // when dropdown is open
-  />
-  <MenuList bg="#34495e" border="none">
-    <MenuItem
-      onClick={handleLogout}
-      bg="#34495e"
-      _hover={{ bg: '#2c3e50', color: 'white' }}
-      color="white"
-    >
-      Confirm Logout
-    </MenuItem>
-  </MenuList>
-</Menu>
-
-
-      </Flex>
+            <MenuButton
+              as={IconButton}
+              icon={<MdLogout />}
+              fontSize="xl"
+              color="white"
+              bg="transparent"
+              _hover={{ bg: 'brand.600' }}
+              _focus={{ boxShadow: 'none' }}
+            />
+            <MenuList bg="brand.700" border="none" shadow="lg">
+              <MenuItem
+                onClick={handleLogout}
+                bg="brand.700"
+                _hover={{ bg: 'brand.600', color: 'white' }}
+                color="white"
+              >
+                Confirm Logout
+              </MenuItem>
+            </MenuList>
+          </Menu>
         </HStack>
       </Flex>
 
@@ -107,48 +102,39 @@ export default function Header() {
           pb={4}
           display={{ md: 'none' }}
           position="absolute"
-          bg="#34495e"
-          top="63px"
+          bg="brand.700"
+          top="64px"
           zIndex="10"
           left="0"
           w="100%"
+          shadow="lg"
         >
-          <Stack as="nav" bg="#34495e" color="white" fontWeight="600" spacing={4} px={4}>
+          <Stack as="nav" spacing={4} px={4}>
             {Links.map((link) => (
               <NavLink key={link.name} name={link.name} path={link.path} onClose={onClose} />
             ))}
-            <Flex justify="flex-start" flex="1">
+            <NotificationBell />
             <Menu>
-  <MenuButton
-    as={IconButton}
-    icon={<MdLogout />}
-    fontSize="24px"
-    color="white"
-    bg="transparent"
-    _hover={{
-      transform: 'scale(1.2)',
-      transition: 'transform 0.2s ease-in-out',
-      bg: 'transparent',
-    }}
-    _focus={{ boxShadow: 'none', bg: 'transparent' }}
-    _active={{ bg: 'transparent' }}
-    _expanded={{ bg: 'transparent' }} // when dropdown is open
-  />
-  <MenuList bg="#34495e" border="none">
-    <MenuItem
-      onClick={handleLogout}
-      bg="#34495e"
-      _hover={{ bg: '#2c3e50', color: 'white' }}
-      color="white"
-    >
-      Confirm Logout
-    </MenuItem>
-  </MenuList>
-</Menu>
-
-
-
-      </Flex>
+              <MenuButton
+                as={IconButton}
+                icon={<MdLogout />}
+                fontSize="xl"
+                color="white"
+                bg="transparent"
+                _hover={{ bg: 'brand.600' }}
+                _focus={{ boxShadow: 'none' }}
+              />
+              <MenuList bg="brand.700" border="none" shadow="lg">
+                <MenuItem
+                  onClick={handleLogout}
+                  bg="brand.700"
+                  _hover={{ bg: 'brand.600', color: 'white' }}
+                  color="white"
+                >
+                  Confirm Logout
+                </MenuItem>
+              </MenuList>
+            </Menu>
           </Stack>
         </Box>
       )}

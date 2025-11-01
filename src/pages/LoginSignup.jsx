@@ -8,6 +8,8 @@ import {
   useToast,
   FormControl,
   FormLabel,
+  Text,
+  Link,
 } from '@chakra-ui/react';
 import {
   createUserWithEmailAndPassword,
@@ -63,49 +65,72 @@ const LoginSignup = () => {
   };
 
   return (
-    <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="gray.50">
-    {/* <text>FindIt</text> */}
-      <VStack spacing={4} p={6} boxShadow="md" bg="white" borderRadius="md" width="sm">
-        <Heading>{isSignup ? 'Sign Up' : 'Log In'}</Heading>
+    <Box
+      minH="100vh"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      bg="neutral.100"
+      py={10}
+    >
+      <VStack
+        spacing={6}
+        p={8}
+        boxShadow="xl"
+        bg="white"
+        borderRadius="xl"
+        width={{ base: "90%", sm: "400px" }}
+        textAlign="center"
+      >
+        <Heading size="xl" color="brand.700" mb={4}>
+          {isSignup ? 'Create Account' : 'Welcome Back'}
+        </Heading>
 
         {isSignup && (
           <FormControl>
-            <FormLabel>Username</FormLabel>
+            <FormLabel color="neutral.700">Username</FormLabel>
             <Input
-              placeholder="Enter username"
+              placeholder="Enter your username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              size="lg"
             />
           </FormControl>
         )}
 
         <FormControl>
-          <FormLabel>Email</FormLabel>
+          <FormLabel color="neutral.700">Email</FormLabel>
           <Input
-            placeholder="Enter email"
+            placeholder="Enter your email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            size="lg"
           />
         </FormControl>
 
         <FormControl>
-          <FormLabel>Password</FormLabel>
+          <FormLabel color="neutral.700">Password</FormLabel>
           <Input
-            placeholder="Enter password"
+            placeholder="Enter your password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            size="lg"
           />
         </FormControl>
 
-        <Button colorScheme="blue" width="full" onClick={handleSubmit}>
+        <Button colorScheme="brand" width="full" onClick={handleSubmit} size="lg" mt={4}>
           {isSignup ? 'Sign Up' : 'Log In'}
         </Button>
 
-        <Button variant="link" onClick={() => setIsSignup(!isSignup)}>
-          {isSignup ? 'Already have an account? Log in' : 'No account? Sign up'}
-        </Button>
+        <Text fontSize="md" color="neutral.600">
+          {isSignup ? 'Already have an account?' : 'Don\'t have an account?'}
+          {' '}
+          <Link color="brand.500" fontWeight="bold" onClick={() => setIsSignup(!isSignup)}>
+            {isSignup ? 'Log In' : 'Sign Up'}
+          </Link>
+        </Text>
       </VStack>
     </Box>
   );
