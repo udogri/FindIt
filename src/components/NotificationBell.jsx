@@ -100,9 +100,9 @@ const NotificationBell = () => {
           </Badge>
         )}
       </MenuButton>
-      <MenuList bg="brand.700" border="none" shadow="lg" maxH="300px" overflowY="auto">
+      <MenuList bg="rgba(26, 32, 44, 0.85)" border="none" shadow="lg" maxH="300px" overflowY="auto">
         {notifications.length === 0 ? (
-          <MenuItem bg="brand.700" color="white" _hover={{ bg: 'brand.600' }}>
+          <MenuItem bg="rgba(26, 32, 44, 0.85)" color="white" _hover={{ bg: "rgba(54, 61, 75, 0.85)" }}>
             No new notifications
           </MenuItem>
         ) : (

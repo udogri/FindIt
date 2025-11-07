@@ -13,11 +13,11 @@ export default function LandingPage() {
   return (
     <Box>
       {/* Top Bar */}
-      <Flex h={16} bg="brand.700" px={4} align="center" justify="space-between" shadow="md">
+      <Flex h={16} bg="rgba(26, 32, 44, 0.85)" px={4} align="center" justify="space-between" shadow="md">
         <Box color="white" fontWeight="bold" fontSize="xl">FindIt</Box>
         <Button
           onClick={() => navigate('/login/signup')}
-          colorScheme="brand"
+          colorScheme="rgba(26, 32, 44, 0.85)"
           variant="solid"
           size="sm"
         >
@@ -49,7 +49,7 @@ export default function LandingPage() {
         <Button
           as={RouterLink}
           to="/login/signup"
-          colorScheme="brand"
+          colorScheme="rgba(26, 32, 44, 0.85)"
           size="lg"
           px={8}
           py={6}
@@ -82,7 +82,7 @@ export default function LandingPage() {
 
           <Heading fontSize={{ base: "2xl", md: "4xl" }} fontWeight="extrabold" color="neutral.900" lineHeight="1.2">
             Helping you find{" "}
-            <Text as="span" color="brand.500">
+            <Text as="span" color="accent.500">
               your lost items
             </Text>
           </Heading>
@@ -112,7 +112,7 @@ export default function LandingPage() {
       </Flex>
 
       {/* Impact Section */}
-      <Box bg="brand.800" textAlign="center" py="80px" px={{ base: "30px", md: "60px" }} color="white">
+      <Box bg="rgba(26, 32, 44, 0.85)" textAlign="center" py="80px" px={{ base: "30px", md: "60px" }} color="white">
         <Flex direction={{ base: "column", md: "row" }} justifyContent="center" alignItems="center" gap={10}>
           <Heading
             fontSize={{ base: "2xl", md: "4xl", lg: "5xl" }}
@@ -121,7 +121,7 @@ export default function LandingPage() {
             mb={{ base: "20px", md: 0 }}
           >
             Our{" "}
-            <Text as="span" color="accent.300">
+            <Text as="span" color="accent.500">
               Impact
             </Text>
           </Heading>
@@ -135,13 +135,13 @@ export default function LandingPage() {
                 key={idx}
                 borderRadius="xl"
                 borderLeft="4px solid"
-                borderColor="brand.600"
+                borderColor="rgba(0, 0, 0, 0.85)"
                 p="30px"
-                bg="brand.700"
+                bg="rgba(26, 32, 44, 0.85)"
                 shadow="lg"
                 mb={{ base: "20px", md: "0" }}
               >
-                <Text fontSize={{ base: "3xl", md: "4xl", lg: "5xl" }} fontWeight="bold" color="accent.300">
+                <Text fontSize={{ base: "3xl", md: "4xl", lg: "5xl" }} fontWeight="bold" color="accent.500">
                   {item.count}
                 </Text>
                 <Text fontSize={{ base: "sm", md: "md", lg: "lg" }} fontWeight="medium" color="whiteAlpha.800">
@@ -175,7 +175,7 @@ export default function LandingPage() {
           ].map((testimonial, idx) => (
             <Box key={idx} bg="white" p={8} borderRadius="xl" boxShadow="xl" _hover={{ transform: 'translateY(-5px)', transition: '0.2s' }}>
               <Text fontSize="lg" color="neutral.700" mb={4} fontStyle="italic">"{testimonial.text}"</Text>
-              <Text fontWeight="bold" color="brand.600" fontSize="md">{testimonial.name}</Text>
+              <Text fontWeight="bold" color="accent.500" fontSize="md">{testimonial.name}</Text>
             </Box>
           ))}
         </SimpleGrid>
@@ -257,7 +257,7 @@ export default function LandingPage() {
 
                 <Button
                   type="submit"
-                  colorScheme="brand"
+                  colorScheme="rgba(26, 32, 44, 0.85)"
                   w="full"
                   size="lg"
                 >
@@ -273,10 +273,10 @@ export default function LandingPage() {
               Connect with us:
             </Text>
             <HStack spacing={6} justify="center">
-              <IconButton as="a" href="https://facebook.com" icon={<FaFacebook />} aria-label="Facebook" variant="ghost" color="brand.500" fontSize="3xl" _hover={{ color: 'brand.600' }} />
-              <IconButton as="a" href="https://twitter.com" icon={<FaTwitter />} aria-label="Twitter" variant="ghost" color="brand.500" fontSize="3xl" _hover={{ color: 'brand.600' }} />
-              <IconButton as="a" href="https://instagram.com" icon={<FaInstagram />} aria-label="Instagram" variant="ghost" color="brand.500" fontSize="3xl" _hover={{ color: 'brand.600' }} />
-              <IconButton as="a" href="https://linkedin.com" icon={<FaLinkedin />} aria-label="LinkedIn" variant="ghost" color="brand.500" fontSize="3xl" _hover={{ color: 'brand.600' }} />
+              <IconButton as="a" href="https://facebook.com" icon={<FaFacebook />} aria-label="Facebook" variant="ghost" color="rgba(26, 32, 44, 0.85)" fontSize="3xl" _hover={{ color: "rgba(0, 0, 0, 0.85)" }} />
+              <IconButton as="a" href="https://twitter.com" icon={<FaTwitter />} aria-label="Twitter" variant="ghost" color="rgba(26, 32, 44, 0.85)" fontSize="3xl" _hover={{ color: "rgba(0, 0, 0, 0.85)" }} />
+              <IconButton as="a" href="https://instagram.com" icon={<FaInstagram />} aria-label="Instagram" variant="ghost" color="rgba(26, 32, 44, 0.85)" fontSize="3xl" _hover={{ color: "rgba(0, 0, 0, 0.85)" }} />
+              <IconButton as="a" href="https://linkedin.com" icon={<FaLinkedin />} aria-label="LinkedIn" variant="ghost" color="rgba(26, 32, 44, 0.85)" fontSize="3xl" _hover={{ color: "rgba(0, 0, 0, 0.85)" }} />
             </HStack>
           </Box>
         </Stack>

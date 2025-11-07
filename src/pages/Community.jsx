@@ -1,3 +1,4 @@
+// src/pages/Community.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -7,22 +8,26 @@ import {
   Image,
   VStack,
   useDisclosure,
-  Spinner,
+  Skeleton,
+  SkeletonText,
   Tag,
   Flex,
   Icon,
+  Center,
 } from '@chakra-ui/react';
-import { getDocs, collection } from 'firebase/firestore';
+import { getDocs, collection, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import ReportDetailsModal from '../components/ReportDetails';
 import { SlFolderAlt } from "react-icons/sl";
 import { formatDistanceToNowStrict } from 'date-fns';
 import { useLocation } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore'; // Import getDoc and doc
+import { motion } from 'framer-motion';
+
+const MotionBox = motion(Box);
 
 const Community = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const location = useLocation(); // Get current URL location
+  const location = useLocation();
 
   const [allReports, setAllReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
@@ -36,13 +41,12 @@ const Community = () => {
     }
   };
 
-  // Effect to open modal if reportId is in URL
+  // Check URL param for direct report view
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const reportId = queryParams.get('reportId');
 
     const fetchAndOpenReport = async (id) => {
-      setLoading(true);
       try {
         const lostDoc = await getDoc(doc(db, 'lostItems', id));
         const foundDoc = await getDoc(doc(db, 'foundItems', id));
@@ -57,55 +61,46 @@ const Community = () => {
         if (reportData) {
           setSelectedReport(reportData);
           onOpen();
-        } else {
-          console.warn('Report not found for ID:', id);
         }
       } catch (error) {
         console.error('Error fetching report for modal:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
-    if (reportId) {
-      fetchAndOpenReport(reportId);
-    }
-  }, [location.search, onOpen]); // Re-run when URL search params change
+    if (reportId) fetchAndOpenReport(reportId);
+  }, [location.search, onOpen]);
 
-  // Haversine formula to calculate distance in km
+  // Haversine distance calculation
   const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Earth radius in km
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.sin(dLat / 2) ** 2 +
       Math.cos(lat1 * Math.PI / 180) *
-        Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
-  // Get user's current location
+  // Get user's location
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        (pos) =>
           setUserLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          setUserLocation(null); // fallback to show all if user denies
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          }),
+        (err) => {
+          console.error('Error getting location:', err);
+          setUserLocation(null);
         }
       );
     }
   }, []);
 
-  // Fetch data after location is available
+  // Fetch all reports
   useEffect(() => {
     const fetchItems = async () => {
       setLoading(true);
@@ -116,37 +111,35 @@ const Community = () => {
         const lostData = lostSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-          type: 'lost', // Add type for consistent handling
-          status: doc.data().status || 'Lost', // Use actual status or default to 'Lost'
+          type: 'lost',
+          status: doc.data().status || 'Lost',
         }));
 
         const foundData = foundSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-          type: 'found', // Add type for consistent handling
-          status: doc.data().status || 'Found', // Use actual status or default to 'Found'
+          type: 'found',
+          status: doc.data().status || 'Found',
         }));
 
         let combined = [...lostData, ...foundData];
 
-        // ✅ Filter based on distance if user location is available
         if (userLocation) {
           combined = combined.filter((item) => {
             const loc = item.location;
             if (loc?.latitude && loc?.longitude) {
-              const distance = getDistanceFromLatLonInKm(
+              const dist = getDistanceFromLatLonInKm(
                 userLocation.latitude,
                 userLocation.longitude,
                 loc.latitude,
                 loc.longitude
               );
-              return distance <= 20; // show reports within 20km
+              return dist <= 20;
             }
-            return true; // allow items without location (for debugging)
+            return true;
           });
         }
 
-        // ✅ Sort by createdAt (latest first)
         combined.sort((a, b) => {
           const dateA = a.createdAt?.toDate?.() || new Date(0);
           const dateB = b.createdAt?.toDate?.() || new Date(0);
@@ -154,8 +147,8 @@ const Community = () => {
         });
 
         setAllReports(combined);
-      } catch (error) {
-        console.error('Error fetching items:', error);
+      } catch (err) {
+        console.error('Error fetching items:', err);
       } finally {
         setLoading(false);
       }
@@ -176,13 +169,20 @@ const Community = () => {
       </VStack>
 
       <Box mt={12}>
-        <Heading fontSize={{ base: "xl", md: "2xl" }} mb={6} color="neutral.800" textAlign="center">Recent Reports Nearby</Heading>
+        <Heading fontSize={{ base: "xl", md: "2xl" }} mb={6} color="neutral.800" textAlign="center">
+          Recent Reports Nearby
+        </Heading>
 
         {loading ? (
-          <Box textAlign="center" py={10}>
-            <Spinner size="xl" color="brand.500" />
-            <Text mt={4} color="neutral.600">Loading reports...</Text>
-          </Box>
+          // 🦴 Skeleton Loading Grid
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Box key={i} bg="white" p={6} shadow="md" borderRadius="xl">
+                <Skeleton height="200px" borderRadius="lg" mb={4} />
+                <SkeletonText mt="4" noOfLines={3} spacing="3" />
+              </Box>
+            ))}
+          </SimpleGrid>
         ) : allReports.length === 0 ? (
           <VStack textAlign="center" py={10} w="100%">
             <Icon as={SlFolderAlt} boxSize={65} color="neutral.400" mt={4} />
@@ -192,20 +192,19 @@ const Community = () => {
           </VStack>
         ) : (
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
-            {allReports.map((report) => (
-              <Box
+            {allReports.map((report, i) => (
+              <MotionBox
                 key={report.id}
                 bg="white"
                 p={6}
                 shadow="lg"
                 borderRadius="xl"
                 cursor="pointer"
-                _hover={{ boxShadow: '2xl', transform: 'translateY(-5px)', transition: '0.2s' }}
+                whileHover={{ y: -5, boxShadow: '0px 10px 20px rgba(0,0,0,0.15)' }}
+                transition="0.3s"
                 onClick={() => openDetails(report)}
-                position="relative"
-                overflow="hidden"
               >
-                {report.imageUrl && (
+                {report.imageUrl ? (
                   <Image
                     src={report.imageUrl}
                     alt={report.title || 'Report Image'}
@@ -215,9 +214,13 @@ const Community = () => {
                     borderRadius="lg"
                     mb={4}
                   />
+                ) : (
+                  <Skeleton height="200px" borderRadius="lg" mb={4} />
                 )}
                 <Flex justifyContent="space-between" alignItems="center" mb={2}>
-                  <Heading fontSize={{ base: "md", md: "lg" }} color="brand.700" noOfLines={1}>{report.title || 'Untitled Report'}</Heading>
+                  <Heading fontSize={{ base: "md", md: "lg" }} color="brand.700" noOfLines={1}>
+                    {report.title || 'Untitled Report'}
+                  </Heading>
                   <Tag
                     size="md"
                     colorScheme={report.status === 'resolved' ? 'green' : (report.type === 'lost' ? 'red' : 'green')}
@@ -225,7 +228,9 @@ const Community = () => {
                     borderRadius="full"
                     px={3}
                   >
-                    {report.status === 'resolved' ? (report.type === 'lost' ? 'Found' : 'Returned') : report.status}
+                    {report.status === 'resolved'
+                      ? (report.type === 'lost' ? 'Found' : 'Returned')
+                      : report.status}
                   </Tag>
                 </Flex>
                 <Text fontSize={{ base: "sm", md: "md" }} color="neutral.700" noOfLines={2} mb={3}>
@@ -236,7 +241,7 @@ const Community = () => {
                     Posted {formatDistanceToNowStrict(report.createdAt.toDate(), { addSuffix: true })}
                   </Text>
                 )}
-              </Box>
+              </MotionBox>
             ))}
           </SimpleGrid>
         )}

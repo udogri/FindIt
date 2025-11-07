@@ -16,6 +16,9 @@ import {
   useToast,
   Stack,
   Flex,
+  Skeleton,
+  SkeletonText,
+  SkeletonCircle,
 } from "@chakra-ui/react";
 import {
   FaMapMarkerAlt,
@@ -37,9 +40,8 @@ import {
 
 const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY;
 
-// Haversine formula to calculate distance in km
 const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; // Earth radius in km
+  const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a =
@@ -61,13 +63,11 @@ export default function NearbyPlaces() {
   const [city, setCity] = useState("");
   const toast = useToast();
 
-  // ✅ Get user location and detect city
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const loc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
         setLocation(loc);
-
         try {
           const res = await fetch(
             `https://api.geoapify.com/v1/geocode/reverse?lat=${loc.lat}&lon=${loc.lon}&apiKey=${GEOAPIFY_API_KEY}`
@@ -94,7 +94,6 @@ export default function NearbyPlaces() {
     );
   }, []);
 
-  // ✅ Categories and icons
   const categoryMap = {
     "": "",
     restaurant: "catering.restaurant",
@@ -141,7 +140,6 @@ export default function NearbyPlaces() {
     default: FaStore,
   };
 
-  // 🔍 Search places
   const findPlaces = async () => {
     if (!location) {
       toast({
@@ -187,12 +185,13 @@ export default function NearbyPlaces() {
 
       const data = await res.json();
       let results = data.features || [];
-
-      // Filter out places with unknown or unnamed locations
-      results = results.filter(place => {
+      results = results.filter((place) => {
         const name = place.properties.name;
-        const address = place.properties.address_line2 || place.properties.address_line1 || place.properties.formatted;
-        return name && name !== "Unnamed Place" && address && address !== "No address available";
+        const address =
+          place.properties.address_line2 ||
+          place.properties.address_line1 ||
+          place.properties.formatted;
+        return name && name !== "Unnamed Place" && address;
       });
 
       if (results.length === 0) {
@@ -222,7 +221,6 @@ export default function NearbyPlaces() {
     }
   };
 
-  // 🗺️ Open Google Maps
   const openInMaps = (place) => {
     const lat = place.properties.lat || place.geometry.coordinates[1];
     const lon = place.properties.lon || place.geometry.coordinates[0];
@@ -234,6 +232,24 @@ export default function NearbyPlaces() {
       "_blank"
     );
   };
+
+  // 🔹 Skeleton loader cards
+  const SkeletonGrid = () => (
+    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} mt={4}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <Card key={i} borderRadius="xl" shadow="lg" p={6}>
+          <HStack spacing={4} align="start">
+            <SkeletonCircle size="10" />
+            <VStack align="start" spacing={2} flex="1">
+              <Skeleton height="20px" width="70%" />
+              <SkeletonText mt="2" noOfLines={2} spacing="2" />
+              <Skeleton height="14px" width="50%" />
+            </VStack>
+          </HStack>
+        </Card>
+      ))}
+    </SimpleGrid>
+  );
 
   return (
     <Box p={[4, 6, 8]} maxW="1200px" mx="auto" bg="neutral.50" minH="100vh">
@@ -253,7 +269,6 @@ export default function NearbyPlaces() {
           )}
         </Heading>
 
-        {/* Search Bar - Responsive Stack */}
         <Stack
           direction={{ base: "column", md: "row" }}
           spacing={4}
@@ -290,7 +305,7 @@ export default function NearbyPlaces() {
               ))}
           </Select>
           <Button
-            colorScheme="brand"
+            bg="rgba(26, 32, 44, 0.85)"
             borderRadius="lg"
             leftIcon={<FaSearch />}
             onClick={findPlaces}
@@ -303,23 +318,12 @@ export default function NearbyPlaces() {
           </Button>
         </Stack>
 
-        {/* Loading spinner */}
-        {loading && (
-          <HStack justify="center" py={6}>
-            <Spinner size="xl" color="brand.500" />
-            <Text color="neutral.600">Finding places...</Text>
-          </HStack>
-        )}
+        {/* Skeleton grid while loading */}
+        {loading && <SkeletonGrid />}
 
-        {/* Results grid */}
+        {/* Show actual places */}
         {!loading && places.length > 0 && (
-          <SimpleGrid
-            columns={{ base: 1, md: 2, lg: 3 }}
-            spacing={6}
-            mt={4}
-            w="full"
-            alignItems="stretch"
-          >
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} mt={4}>
             {places.map((place, i) => {
               const iconKey =
                 Object.keys(categoryMap).find((key) =>
@@ -331,20 +335,23 @@ export default function NearbyPlaces() {
                 ) || "default";
 
               const PlaceIcon = iconMap[iconKey] || iconMap.default;
-              const placeLat = place.properties.lat || place.geometry.coordinates[1];
-              const placeLon = place.properties.lon || place.geometry.coordinates[0];
-              const distance = location && placeLat && placeLon
-                ? (
-                    Math.round(
-                      getDistanceFromLatLonInKm(
-                        location.lat,
-                        location.lon,
-                        placeLat,
-                        placeLon
-                      ) * 10
-                    ) / 10
-                  ).toFixed(1)
-                : null;
+              const placeLat =
+                place.properties.lat || place.geometry.coordinates[1];
+              const placeLon =
+                place.properties.lon || place.geometry.coordinates[0];
+              const distance =
+                location && placeLat && placeLon
+                  ? (
+                      Math.round(
+                        getDistanceFromLatLonInKm(
+                          location.lat,
+                          location.lon,
+                          placeLat,
+                          placeLon
+                        ) * 10
+                      ) / 10
+                    ).toFixed(1)
+                  : null;
 
               return (
                 <Card
@@ -357,23 +364,23 @@ export default function NearbyPlaces() {
                     cursor: "pointer",
                     shadow: "xl",
                   }}
-                  h="full"
                   onClick={() => openInMaps(place)}
                 >
                   <CardBody p={6}>
                     <HStack spacing={4} align="start">
                       <Icon as={PlaceIcon} boxSize={7} color="brand.500" />
                       <VStack align="start" spacing={1} flex="1">
-                        <Text fontWeight="bold" fontSize="lg" noOfLines={1} color="neutral.800">
+                        <Text
+                          fontWeight="bold"
+                          fontSize="lg"
+                          noOfLines={1}
+                          color="neutral.800"
+                        >
                           {place.properties.name}
                         </Text>
                         <HStack align="start" spacing={2}>
                           <Icon as={FaMapMarkerAlt} color="neutral.500" mt="2px" />
-                          <Text
-                            fontSize="sm"
-                            color="neutral.600"
-                            noOfLines={[2, 3]}
-                          >
+                          <Text fontSize="sm" color="neutral.600" noOfLines={[2, 3]}>
                             {place.properties.address_line2 ||
                               place.properties.address_line1 ||
                               place.properties.formatted}
@@ -394,7 +401,15 @@ export default function NearbyPlaces() {
         )}
 
         {!loading && places.length === 0 && (
-          <Flex direction="column" align="center" justify="center" py={10} bg="white" borderRadius="xl" shadow="md">
+          <Flex
+            direction="column"
+            align="center"
+            justify="center"
+            py={10}
+            bg="white"
+            borderRadius="xl"
+            shadow="md"
+          >
             <Icon as={FaSearch} boxSize={12} color="neutral.400" mb={4} />
             <Text textAlign="center" color="neutral.600" fontSize="lg">
               Try searching for a place name or select a category.
