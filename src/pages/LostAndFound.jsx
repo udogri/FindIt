@@ -61,8 +61,10 @@ export default function LostAndFound() {
   const toast = useToast();
   const cancelRef = useRef();
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [pendingResolve, setPendingResolve] = useState(null); // New state for pending resolve
   const { isOpen: isFormOpen, onOpen: openFormModal, onClose: closeFormModal } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: openDeleteModal, onClose: closeDeleteModal } = useDisclosure();
+  const { isOpen: isResolveOpen, onOpen: openResolveModal, onClose: closeResolveModal } = useDisclosure(); // New disclosure for resolve modal
 
   const [formData, setFormData] = useState({
     title: '',
@@ -268,15 +270,21 @@ export default function LostAndFound() {
       return;
     }
 
+    setPendingResolve({ itemId, collectionName, userId, itemType });
+    openResolveModal();
+  };
+
+  const confirmResolve = async () => {
+    if (!pendingResolve) return;
     setLoading(true);
     try {
-      const docRef = doc(db, collectionName, itemId);
+      const docRef = doc(db, pendingResolve.collectionName, pendingResolve.itemId);
       await updateDoc(docRef, {
         status: 'resolved',
       });
       await fetchItems();
       toast({
-        title: `Item marked as ${itemType === 'lost' ? 'Found' : 'Returned'}.`,
+        title: `Item marked as ${pendingResolve.itemType === 'lost' ? 'Found' : 'Returned'}.`,
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -293,6 +301,8 @@ export default function LostAndFound() {
         position: 'top',
       });
     } finally {
+      closeResolveModal();
+      setPendingResolve(null);
       setLoading(false);
     }
   };
@@ -540,14 +550,33 @@ export default function LostAndFound() {
         onClose={closeDeleteModal}
       >
         <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader>Delete Confirmation</AlertDialogHeader>
-            <AlertDialogBody>
+          <AlertDialogContent borderRadius="xl">
+            <AlertDialogHeader fontSize="lg" fontWeight="bold" color="brand.700">Delete Confirmation</AlertDialogHeader>
+            <AlertDialogBody color="neutral.700">
               Are you sure you want to delete this item? This action cannot be undone.
             </AlertDialogBody>
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={closeDeleteModal}>Cancel</Button>
+              <Button ref={cancelRef} onClick={closeDeleteModal} variant="outline">Cancel</Button>
               <Button colorScheme="red" onClick={confirmDelete} ml={3}>Delete</Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+
+      <AlertDialog
+        isOpen={isResolveOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={closeResolveModal}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent borderRadius="xl">
+            <AlertDialogHeader fontSize="lg" fontWeight="bold" color="brand.700">Mark as Resolved Confirmation</AlertDialogHeader>
+            <AlertDialogBody color="neutral.700">
+              Are you sure you want to mark this item as {pendingResolve?.itemType === 'lost' ? 'Found' : 'Returned'}? This action will update its status.
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={closeResolveModal} variant="outline">Cancel</Button>
+              <Button colorScheme="green" onClick={confirmResolve} ml={3}>Confirm</Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialogOverlay>
