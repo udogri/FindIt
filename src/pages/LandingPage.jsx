@@ -3,6 +3,7 @@ import { Box, VStack, Text, Button, Stack, Flex, SimpleGrid, HStack, Img, Headin
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import LandingPageImage from '../Assets/LandingPageImage.jpg';
 import LostItem from '../Assets/LostItem.png';
+import locationPin from '../Assets/locationPin.png';
 import lostBag from '../Assets/lostBag.webp';
 import { Input, Textarea, FormControl, FormLabel, IconButton } from '@chakra-ui/react';
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
@@ -109,6 +110,59 @@ export default function LandingPage() {
             objectFit="contain"
           />
         </Box>
+      </Flex>
+
+      {/* Location Finder Section */}
+      <Flex
+        direction={{ base: "column", md: "row" }}
+        align="center"
+        justify="space-between"
+        px={{ base: 6, md: 16 }}
+        py={{ base: 10, md: 20 }}
+        gap={{ base: 10, md: 16 }}
+        bg="neutral.100"
+      >
+        {/* Left: Image */}
+        <Box w={{ base: "100%", md: "80%" }} textAlign="center">
+          <Img
+            src={locationPin}
+            alt="Location Finder"
+            maxW="100%"
+            h="auto"
+            mx="auto"
+            objectFit="contain"
+          />
+        </Box>
+
+        {/* Right: Text Content */}
+        <Stack
+          justify="center"
+          spacing={6}
+          maxW={{ base: "100%", md: "50%" }}
+          align={{ base: "center", md: "flex-start" }}
+          textAlign={{ base: "center", md: "left" }}
+        >
+          <Text fontSize="sm" color="accent.500" fontWeight="bold" textTransform="uppercase">
+            Discover Places
+          </Text>
+
+          <Heading fontSize={{ base: "2xl", md: "4xl" }} fontWeight="extrabold" color="neutral.900" lineHeight="1.2">
+            Explore and find{" "}
+            <Text as="span" color="accent.500">
+              places of interest
+            </Text>
+          </Heading>
+
+          <Text
+            fontSize={{ base: "md", md: "lg" }}
+            color="neutral.700"
+            maxW={{ base: "100%", sm: "400px", md: "500px" }}
+          >
+            Beyond lost and found, FindIt also offers a powerful location finder. Search for places you're interested in,
+            discover new spots, and get directions. It's your go-to tool for exploring your surroundings.
+          </Text>
+          
+        </Stack>
       </Flex>
 
       {/* Impact Section */}
