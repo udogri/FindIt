@@ -181,12 +181,18 @@ export default function LostAndFound() {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "image") {
-      setFormData((prev) => ({ ...prev, image: files[0] }));
+    if (name === "image" && files?.[0]) {
+      const file = files[0];
+      setFormData((prev) => ({
+        ...prev,
+        image: file,
+        imageUrl: URL.createObjectURL(file), // 👈 generate preview
+      }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
+
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -331,8 +337,9 @@ export default function LostAndFound() {
     });
     setEditMode(false);
     setEditItemId(null);
-    closeFormModal();
+    // ❌ remove closeFormModal()
   };
+
 
   return (
     <Box p={8} textAlign="center" bg="neutral.50" minH="100vh">
@@ -343,12 +350,17 @@ export default function LostAndFound() {
         Manage all your reports in one place.
       </Text>
 
-      <Button bg="rgba(26, 32, 44, 0.85)" mb={8} onClick={() => {
-        resetForm();
-        openFormModal();
-      }}>
+      <Button
+        bg="rgba(26, 32, 44, 0.85)"
+        mb={8}
+        onClick={() => {
+          resetForm();
+          openFormModal();
+        }}
+      >
         Report Lost or Found Item
       </Button>
+
 
       {/* Skeleton Loader */}
       {loading && items.length === 0 ? (
@@ -441,6 +453,200 @@ export default function LostAndFound() {
       )}
 
       {/* Form Modal, Delete & Resolve Dialogs (same as before) */}
+      {/* ✅ Form Modal */}
+      <Modal isOpen={isFormOpen} onClose={closeFormModal} size="lg" isCentered motionPreset="scale">
+        <ModalOverlay
+          bg="blackAlpha.600"
+          backdropFilter="blur(6px)"
+        />
+        <ModalContent
+          bg="white"
+          borderRadius="2xl"
+          boxShadow="0px 8px 30px rgba(0, 0, 0, 0.15)"
+          transform="translateY(10px)"
+          transition="all 0.3s ease-in-out"
+        >
+          <ModalHeader
+            textAlign="center"
+            fontWeight="bold"
+            fontSize="2xl"
+            color="gray.800"
+            borderBottom="1px solid"
+            borderColor="gray.100"
+            py={5}
+          >
+            {editMode ? "Edit Report" : "Report Lost or Found Item"}
+          </ModalHeader>
+
+          <ModalCloseButton
+            _hover={{
+              bg: "gray.100",
+              transform: "scale(1.1)",
+            }}
+            transition="all 0.2s ease"
+          />
+
+          <ModalBody px={8} py={6}>
+            <VStack spacing={5} align="stretch">
+              <FormControl isRequired>
+                <FormLabel fontWeight="600" color="gray.700">
+                  Title
+                </FormLabel>
+                <Input
+                  name="title"
+                  placeholder="e.g. Lost Wallet"
+                  value={formData.title}
+                  onChange={handleChange}
+                  focusBorderColor="blue.500"
+                  borderRadius="lg"
+                  _hover={{ borderColor: "gray.400" }}
+                />
+              </FormControl>
+
+              <FormControl isRequired>
+                <FormLabel fontWeight="600" color="gray.700">
+                  Description
+                </FormLabel>
+                <Textarea
+                  name="description"
+                  placeholder="Describe the item..."
+                  value={formData.description}
+                  onChange={handleChange}
+                  focusBorderColor="blue.500"
+                  borderRadius="lg"
+                  minH="120px"
+                  _hover={{ borderColor: "gray.400" }}
+                />
+              </FormControl>
+
+              <FormControl>
+                <FormLabel fontWeight="600" color="gray.700">
+                  Last Seen Location
+                </FormLabel>
+                <Input
+                  name="lastSeen"
+                  placeholder="Optional"
+                  value={formData.lastSeen}
+                  onChange={handleChange}
+                  focusBorderColor="blue.500"
+                  borderRadius="lg"
+                  _hover={{ borderColor: "gray.400" }}
+                />
+              </FormControl>
+
+              <FormControl>
+                <FormLabel fontWeight="600" color="gray.700">
+                  Type
+                </FormLabel>
+                <Select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleChange}
+                  focusBorderColor="blue.500"
+                  borderRadius="lg"
+                >
+                  <option value="lost">Lost</option>
+                  <option value="found">Found</option>
+                </Select>
+              </FormControl>
+
+              <FormControl>
+                <FormLabel fontWeight="600" color="gray.700">
+                  Upload Image
+                </FormLabel>
+
+                <Box
+                  as="label"
+                  htmlFor="image-upload"
+                  borderColor={formData.imageUrl ? "transparent" : "gray.300"}
+                  borderRadius="lg"
+                  p={4}
+                  textAlign="center"
+                  cursor="pointer"
+                  transition="all 0.3s ease"
+                  _hover={{
+                    borderColor: "blue.400",
+                    bg: "gray.50",
+                    transform: "translateY(-2px)",
+                  }}
+                  _active={{
+                    transform: "scale(0.98)",
+                  }}
+                >
+                  {formData.imageUrl ? (
+                    <Image
+                      src={formData.imageUrl}
+                      alt="Preview"
+                      borderRadius="lg"
+                      maxH="180px"
+                      objectFit="cover"
+                      mx="auto"
+                      boxShadow="md"
+                    />
+                  ) : (
+                    <VStack spacing={2}>
+                      <Icon
+                        as={SlFolderAlt}
+                        boxSize={10}
+                        color="gray.400"
+                      />
+                      <Text fontSize="sm" color="gray.500">
+                        Click or drag to upload image
+                      </Text>
+                    </VStack>
+                  )}
+                </Box>
+
+                <Input
+                  id="image-upload"
+                  type="file"
+                  name="image"
+                  accept="image/*"
+                  display="none"
+                  onChange={handleChange}
+                />
+              </FormControl>
+
+            </VStack>
+          </ModalBody>
+
+          <ModalFooter
+            borderTop="1px solid"
+            borderColor="gray.100"
+            py={4}
+            justifyContent="center"
+          >
+            <Button
+              bgGradient="linear(to-r, blue.500, purple.500)"
+              color="white"
+              mr={3}
+              px={6}
+              borderRadius="lg"
+              fontWeight="600"
+              isLoading={loading}
+              _hover={{
+                bgGradient: "linear(to-r, blue.600, purple.600)",
+                transform: "translateY(-2px)",
+                boxShadow: "md",
+              }}
+              transition="all 0.25s ease"
+              onClick={handleSubmit}
+            >
+              {editMode ? "Update Report" : "Submit Report"}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={closeFormModal}
+              fontWeight="500"
+              _hover={{ bg: "gray.100" }}
+            >
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+
       {/* ... (keep same modal and alert dialog code from your version) */}
     </Box>
   );

@@ -84,7 +84,28 @@ const NotificationBell = () => {
 
   return (
     <Menu>
-      <MenuButton as={IconButton} icon={<BellIcon />} variant="ghost" color="white" fontSize="xl" position="relative">
+<MenuButton
+  as={IconButton}
+  icon={<BellIcon />}
+  color="white"
+  fontSize="xl"
+  position="relative"
+  bg="transparent"
+  transition="all 0.3s ease"
+  _hover={{
+    animation: "ring 0.4s ease",
+    color: "yellow.400",
+  }}
+  sx={{
+    "@keyframes ring": {
+      "0%": { transform: "rotate(0)" },
+      "25%": { transform: "rotate(15deg)" },
+      "50%": { transform: "rotate(-10deg)" },
+      "75%": { transform: "rotate(5deg)" },
+      "100%": { transform: "rotate(0)" },
+    },
+  }}
+>
         {unreadCount > 0 && (
           <Badge
             position="absolute"
@@ -134,7 +155,7 @@ const NotificationBell = () => {
           ))
         )}
       </MenuList>
-    </Menu>
+    </Menu >
   );
 };
 

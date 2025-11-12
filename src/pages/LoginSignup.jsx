@@ -82,7 +82,10 @@ const LoginSignup = () => {
         width={{ base: "90%", sm: "400px" }}
         textAlign="center"
       >
-        <Heading size="xl" color="brand.700" mb={4}>
+        <Heading size="l" color="rgba(26, 32, 44, 0.85)">
+          FindIt
+        </Heading>
+        <Heading size="xl" color="rgba(26, 32, 44, 0.85)" mb={4}>
           {isSignup ? 'Create Account' : 'Welcome Back'}
         </Heading>
 
@@ -120,14 +123,14 @@ const LoginSignup = () => {
           />
         </FormControl>
 
-        <Button colorScheme="brand" width="full" onClick={handleSubmit} size="lg" mt={4}>
+        <Button colorScheme="rgba(26, 32, 44, 0.85)" width="full" onClick={handleSubmit} size="lg" mt={4}>
           {isSignup ? 'Sign Up' : 'Log In'}
         </Button>
 
         <Text fontSize="md" color="neutral.600">
           {isSignup ? 'Already have an account?' : 'Don\'t have an account?'}
           {' '}
-          <Link color="brand.500" fontWeight="bold" onClick={() => setIsSignup(!isSignup)}>
+          <Link color="rgba(26, 32, 44, 0.85)" fontWeight="bold" onClick={() => setIsSignup(!isSignup)}>
             {isSignup ? 'Log In' : 'Sign Up'}
           </Link>
         </Text>

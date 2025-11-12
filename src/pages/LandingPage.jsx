@@ -14,16 +14,40 @@ export default function LandingPage() {
   return (
     <Box>
       {/* Top Bar */}
-      <Flex h={16} bg="rgba(26, 32, 44, 0.85)" px={4} align="center" justify="space-between" shadow="md">
+      <Flex h={16} bg="rgba(26, 32, 44, 0.85)" px={10} align="center" justify="space-between" shadow="md">
         <Box color="white" fontWeight="bold" fontSize="xl">FindIt</Box>
-        <Button
-          onClick={() => navigate('/login/signup')}
-          colorScheme="rgba(26, 32, 44, 0.85)"
-          variant="solid"
-          size="sm"
-        >
-          Login
-        </Button>
+        <Text
+  as="button"
+  onClick={() => navigate('/login/signup')}
+  fontWeight="600"
+  fontSize="sm"
+  color="white"
+  position="relative"
+  transition="all 0.3s ease"
+  _hover={{
+    transform: "scale(1.25)",
+  }}
+  _after={{
+    content: '""',
+    position: "absolute",
+    bottom: "-2px",
+    left: 0,
+    width: "0%",
+    height: "2px",
+    bg: "blue.500",
+    transition: "width 0.3s ease",
+  }}
+  _hover={{
+    transform: "scale(1.25)",
+    _after: {
+      width: "100%",
+    },
+  }}
+>
+  Login
+</Text>
+
+
       </Flex>
 
       {/* Hero Section */}

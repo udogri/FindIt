@@ -406,9 +406,7 @@ export default function NearbyPlaces() {
             align="center"
             justify="center"
             py={10}
-            bg="white"
             borderRadius="xl"
-            shadow="md"
           >
             <Icon as={FaSearch} boxSize={12} color="neutral.400" mb={4} />
             <Text textAlign="center" color="neutral.600" fontSize="lg">
