@@ -420,7 +420,7 @@ export default function LostAndFound() {
                   variant="ghost"
                   size="sm"
                   position="absolute"
-                  top={3}
+                  bottom={3}
                   right={3}
                 />
                 <MenuList fontSize="sm">
