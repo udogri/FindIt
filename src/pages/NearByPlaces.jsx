@@ -64,35 +64,68 @@ export default function NearbyPlaces() {
   const toast = useToast();
 
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const loc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-        setLocation(loc);
-        try {
-          const res = await fetch(
-            `https://api.geoapify.com/v1/geocode/reverse?lat=${loc.lat}&lon=${loc.lon}&apiKey=${GEOAPIFY_API_KEY}`
-          );
-          const data = await res.json();
-          const cityName =
-            data.features?.[0]?.properties?.city ||
-            data.features?.[0]?.properties?.state ||
-            "Your area";
-          setCity(cityName);
-        } catch {
-          setCity("your area");
+    const successCallback = async (pos) => {
+      const loc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+      setLocation(loc);
+      try {
+        const res = await fetch(
+          `https://api.geoapify.com/v1/geocode/reverse?lat=${loc.lat}&lon=${loc.lon}&apiKey=${GEOAPIFY_API_KEY}`
+        );
+        const data = await res.json();
+        const cityName =
+          data.features?.[0]?.properties?.city ||
+          data.features?.[0]?.properties?.state ||
+          "Your area";
+        setCity(cityName);
+      } catch (error) {
+        console.error("Error during reverse geocoding:", error);
+        setCity("your area");
+      }
+    };
+
+    const errorCallback = (err) => {
+      console.error('Error getting location:', err);
+      let errorMessage = "Please enable location access to find nearby places.";
+      if (err.code === err.PERMISSION_DENIED) {
+        errorMessage = "Location access denied. Please grant permission in your browser settings.";
+      } else if (err.code === err.POSITION_UNAVAILABLE) {
+        errorMessage = "Location information is unavailable.";
+      } else if (err.code === err.TIMEOUT) {
+        errorMessage = "The request to get user location timed out.";
+      }
+      toast({
+        title: "Location error",
+        description: errorMessage,
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "top",
+      });
+      setLocation(null); // Ensure location is null if there's an error
+      setCity(""); // Clear city on error
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        successCallback,
+        errorCallback,
+        {
+          enableHighAccuracy: true,
+          timeout: 10000, // 10 seconds
+          maximumAge: 0, // No cached positions
         }
-      },
-      () =>
-        toast({
-          title: "Location access denied",
-          description: "Please enable location access to find nearby places.",
-          status: "warning",
-          duration: 4000,
-          isClosable: true,
-          position: "top",
-        })
-    );
-  }, []);
+      );
+    } else {
+      toast({
+        title: "Geolocation not supported",
+        description: "Your browser does not support geolocation.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top",
+      });
+    }
+  }, [toast]); // Include toast in dependency array to avoid lint warnings
 
   const categoryMap = {
     "": "",

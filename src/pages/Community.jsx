@@ -14,6 +14,9 @@ import {
   Flex,
   Icon,
   Center,
+  Switch, // Added Switch
+  FormControl, // Added FormControl
+  FormLabel, // Added FormLabel
 } from '@chakra-ui/react';
 import { getDocs, collection, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -33,6 +36,7 @@ const Community = () => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState(null);
+  const [showGlobalCommunity, setShowGlobalCommunity] = useState(false); // New state for toggle
 
   const openDetails = (report) => {
     if (report) {
@@ -124,7 +128,7 @@ const Community = () => {
 
         let combined = [...lostData, ...foundData];
 
-        if (userLocation) {
+        if (userLocation && !showGlobalCommunity) { // Apply filter only if not showing global community
           combined = combined.filter((item) => {
             const loc = item.location;
             if (loc?.latitude && loc?.longitude) {
@@ -136,7 +140,7 @@ const Community = () => {
               );
               return dist <= 20;
             }
-            return true;
+            return false; // If location data is missing, filter out when local search is active
           });
         }
 
@@ -155,7 +159,7 @@ const Community = () => {
     };
 
     fetchItems();
-  }, [userLocation]);
+  }, [userLocation, showGlobalCommunity]); // Re-fetch when showGlobalCommunity changes
 
   return (
     <Box px={{ base: 4, md: 8 }} py={12} bg="neutral.50" minH="100vh">
@@ -169,9 +173,26 @@ const Community = () => {
       </VStack>
 
       <Box mt={12}>
-        <Heading fontSize={{ base: "xl", md: "2xl" }} mb={6} color="neutral.800" textAlign="center">
-          Recent Reports Nearby
-        </Heading>
+        <Flex justifyContent="center" alignItems="center" mb={6} flexDirection="column">
+          <Heading fontSize={{ base: "xl", md: "2xl" }} color="neutral.800" textAlign="center">
+            {showGlobalCommunity ? "Global Community Reports" : "Recent Reports Nearby"}
+          </Heading>
+          <Text fontSize="sm" color="neutral.500" mt={2} mb={4} textAlign="center" maxW="400px">
+            {showGlobalCommunity
+              ? "Viewing all reports globally."
+              : "Viewing reports within 20km of your location."}
+          </Text>
+          <FormControl display="flex" alignItems="center" justifyContent="center" width="auto">
+            <FormLabel htmlFor="global-community-toggle" mb="0">
+              Show Global Community
+            </FormLabel>
+            <Switch
+              id="global-community-toggle"
+              isChecked={showGlobalCommunity}
+              onChange={() => setShowGlobalCommunity(!showGlobalCommunity)}
+            />
+          </FormControl>
+        </Flex>
 
         {loading ? (
           // 🦴 Skeleton Loading Grid
