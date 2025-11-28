@@ -26,8 +26,8 @@ import NotificationBell from './NotificationBell';
 const Links = [
   { name: 'Home', path: '/home' },
   { name: 'Lost & Found', path: '/lost-and-found' },
-  { name: 'Places', path: '/places' },
   { name: 'Community', path: '/community' },
+  { name: 'Places', path: '/places' },
 ];
 
 const NavLink = ({ name, path, isActive, onClose }) => (
@@ -55,13 +55,8 @@ const NavLink = ({ name, path, isActive, onClose }) => (
       width: isActive ? '100%' : '0',
       height: '2px',
       bg: 'brand.300',
-      transition: 'width 0.3s',
     }}
-    _hover={{
-      _after: {
-        width: '100%',
-      },
-    }}
+    
   >
     {name}
   </Link>
@@ -85,7 +80,7 @@ export default function Header() {
     <Box
       position="sticky"
       top="0"
-      zIndex="100"
+      zIndex="999"
       backdropFilter="blur(8px)"
       bg="rgba(26, 32, 44, 0.85)"
       shadow="md"
@@ -129,43 +124,33 @@ export default function Header() {
             />
           ))}
           <NotificationBell />
-          <Menu>
-            <MenuButton
-              as={Box}
-              cursor="pointer"
-              color="white"
-              display="inline-flex"
-              alignItems="center"
-              justifyContent="center"
-              _hover={{
-                transform: "scale(1.1)",
-                color: "red.400",
-                transition: "all 0.2s ease",
-              }}
-              _active={{ transform: "scale(0.95)" }}
-            >
-              <MdLogout fontSize="24px" />
-            </MenuButton>
+          <Button
+  onClick={handleLogout}
+  size="md"
+  px={5}
+  fontWeight="semibold"
+  color="white"
+  bg="transparent"
+  border="1px solid"
+  borderColor="white"
+  rounded="lg"
+  transition="all 0.25s ease"
+  _hover={{
+    bg: "red.500",
+    color: "white",
+    transform: "scale(1.05)",
+    shadow: "lg",
+    border:"none"
+  }}
+  _active={{
+    transform: "scale(0.98)",
+    bg: "red.600",
+  }}
+  leftIcon={<MdLogout size={18} />}
+>
+  Logout
+</Button>
 
-            <MenuList
-              bg="rgba(26, 32, 44, 0.95)"
-              border="none"
-              shadow="lg"
-              borderRadius="md"
-              p={1}
-            >
-              <MenuItem
-                onClick={handleLogout}
-                bg="transparent"
-                _hover={{ bg: "rgba(44, 50, 62, 0.85)", color: "white" }}
-                color="white"
-                rounded="md"
-                transition="all 0.2s ease"
-              >
-                Confirm Logout
-              </MenuItem>
-            </MenuList>
-          </Menu>
 
 
         </HStack>
@@ -193,66 +178,36 @@ export default function Header() {
                   isActive={location.pathname === link.path}
                 />
               ))}
-              <Box alignSelf="flex-start" ><NotificationBell /></Box>
-              <Menu >
-                <Menu >
-                  <MenuButton
-                    as={Box}
-                    alignSelf="flex-start"
-                    cursor="pointer"
-                    color="white"
-                    display="inline-flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    _hover={{
-                      color: "red.400",
-                      transition: "all 0.2s ease",
-                    }}
-                    _active={{ transform: "scale(0.95)" }}
-                  >
-                    <MdLogout fontSize="24px" />
-                  </MenuButton>
-
-                  <MenuList
-                    bg="rgba(26, 32, 44, 0.95)"
-                    border="none"
-                    shadow="lg"
-                    borderRadius="md"
-                    p={1}
-                  >
-                    <MenuItem
-                      onClick={handleLogout}
-                      bg="transparent"
-                      _hover={{ bg: "rgba(44, 50, 62, 0.85)", color: "white" }}
-                      color="white"
-                      rounded="md"
-                      transition="all 0.2s ease"
-                    >
-                      Confirm Logout
-                    </MenuItem>
-                  </MenuList>
-                </Menu>
+              <Button
+  onClick={handleLogout}
+  w="100%"
+  justifyContent="flex-start"
+  size="md"
+  px={4}
+  fontWeight="semibold"
+  color="white"
+  bg="transparent"
+  border="1px solid"
+  borderColor="white"
+  rounded="lg"
+  transition="all 0.25s ease"
+  leftIcon={<MdLogout size={18} />}
+  _hover={{
+    bg: "red.500",
+    color: "white",
+    transform: "scale(1.03)",
+    shadow: "md",
+    border:"none"
+  }}
+  _active={{
+    transform: "scale(0.97)",
+    bg: "red.600",
+  }}
+>
+  Logout
+</Button>
 
 
-                <MenuList
-                  bg="rgba(26, 32, 44, 0.95)"
-                  border="none"
-                  shadow="lg"
-                  borderRadius="lg"
-                  p={1}
-                >
-                  <MenuItem
-                    onClick={handleLogout}
-                    bg="transparent"
-                    _hover={{ bg: "rgba(44, 50, 62, 0.85)", color: "white" }}
-                    color="white"
-                    rounded="md"
-                    transition="all 0.2s ease"
-                  >
-                    Confirm Logout
-                  </MenuItem>
-                </MenuList>
-              </Menu>
 
             </Stack>
           </Box>
