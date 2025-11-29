@@ -55,7 +55,7 @@ export default function LandingPage() {
         direction={{ base: "column-reverse", md: "row" }}
         align="center"
         justify="space-between"
-        px={{ base: 6, md: 16 }}
+        px={6}
         py={{ base: 10, md: 20 }}
         gap={{ base: 10, md: 16 }}
         bg="neutral.50"
@@ -95,7 +95,7 @@ export default function LandingPage() {
           <Img
             src={LostItem}
             alt="Lost Item Box"
-            maxW="100%"
+            w="100"
             h="auto"
             mx="auto"
             objectFit="contain"
@@ -108,7 +108,7 @@ export default function LandingPage() {
         direction={{ base: "column", md: "row" }}
         align="center"
         justify="space-between"
-        px={{ base: 6, md: 16 }}
+        px={6}
         py={{ base: 10, md: 20 }}
         gap={{ base: 10, md: 16 }}
         bg="neutral.100"
@@ -118,7 +118,7 @@ export default function LandingPage() {
           <Img
             src={locationPin}
             alt="Location Finder"
-            maxW="100%"
+            w="70%"
             h="auto"
             mx="auto"
             objectFit="contain"
@@ -157,7 +157,7 @@ export default function LandingPage() {
       </Flex>
 
       {/* Impact Section */}
-      <Box bg="rgba(26, 32, 44, 0.85)" textAlign="center" py="80px" px={{ base: "30px", md: "60px" }} color="white">
+      <Box bg="rgba(26, 32, 44, 0.85)" textAlign="center" py="80px" px={6} color="white">
         <Flex direction={{ base: "column", md: "row" }} justifyContent="center" alignItems="center" gap={10}>
           <Heading
             fontSize={{ base: "2xl", md: "4xl", lg: "5xl" }}
@@ -170,7 +170,12 @@ export default function LandingPage() {
               Impact
             </Text>
           </Heading>
-          <Flex direction={{ base: "column", md: "row" }} gap="20px" justify="center">
+          <Flex
+            align="stretch"
+            direction={{ base: "column", md: "row" }}
+            gap="20px"
+            w="100%"
+          >
             {[
               { count: '100+', label: 'Items found' },
               { count: '50+', label: 'Items recovered' },
@@ -182,10 +187,12 @@ export default function LandingPage() {
                 borderLeft="4px solid"
                 borderColor="rgba(0, 0, 0, 0.85)"
                 p="30px"
+                w="100%"
                 bg="rgba(26, 32, 44, 0.85)"
                 shadow="lg"
                 mb={{ base: "20px", md: "0" }}
               >
+
                 <Text fontSize={{ base: "3xl", md: "4xl", lg: "5xl" }} fontWeight="bold" color="accent.500">
                   {item.count}
                 </Text>
@@ -253,9 +260,9 @@ export default function LandingPage() {
           as={RouterLink}
           to="/login/signup"
           colorScheme="accent"
-          size="lg"
-          px={10}
-          py={7}
+          size="md"
+          
+          
         >
           Get Started
         </Button>

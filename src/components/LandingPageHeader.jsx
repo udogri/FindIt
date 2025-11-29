@@ -9,7 +9,7 @@ export default function LandingPageHeader() {
       h={16}
       bg="rgba(26, 32, 44, 0.85)"
       backdropFilter="blur(6px)"
-      px={{ base: 4, md: 10 }}
+      px={6}
       position="fixed"
       top={0}
       left={0}
