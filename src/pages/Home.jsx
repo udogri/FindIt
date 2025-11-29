@@ -50,7 +50,7 @@ const HomePage = () => {
   
 
   return (
-    <Box bg="neutral.50" minH="100vh" p={{ base: 4, md: 10 }}>
+    <Box bg="neutral.50" minH="100vh" p={{ base: 4, md: 6 }}>
       <VStack spacing={10} align="stretch">
         {/* Hero Section */}
         {isLoading ? (

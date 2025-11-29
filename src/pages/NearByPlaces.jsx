@@ -68,6 +68,16 @@ const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
+export const redIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
 export default function NearbyPlaces() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
@@ -80,6 +90,10 @@ export default function NearbyPlaces() {
   const [hasMore, setHasMore] = useState(false);
   const toast = useToast();
   const abortControllerRef = useRef(null);
+  const loadMoreRef = useRef(null);
+  const scrollYRef = useRef(0);
+
+
 
   // --- CATEGORY MAP (valid Geoapify categories) ---
   const categoryMap = {
@@ -149,6 +163,15 @@ export default function NearbyPlaces() {
       }
     };
 
+    if (!loading && scrollYRef.current > 0) {
+      setTimeout(() => {
+        window.scrollTo({
+          top: scrollYRef.current,
+          behavior: "instant",
+        });
+      }, 50);
+    }
+
     const errorCallback = (err) => {
       console.error("Error getting location:", err);
       let errorMessage = "Please enable location access to find nearby places.";
@@ -189,7 +212,7 @@ export default function NearbyPlaces() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [places]);
 
   // --- HELPER: determine icon key safely for a place ---
   // Prefer the selected category; otherwise try to infer from place properties
@@ -307,6 +330,12 @@ export default function NearbyPlaces() {
         const results = data.features || [];
         // append or replace depending on reset/nextPage
         setPlaces((prev) => (nextPage ? [...prev, ...results] : results));
+        if (nextPage && loadMoreRef.current) {
+          setTimeout(() => {
+            loadMoreRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 200);
+        }
+
         setPage(currPage);
         setHasMore(results.length === limit); // if we got `limit` results, there may be more
       } else if (query) {
@@ -395,16 +424,16 @@ export default function NearbyPlaces() {
 
   // --- UI render ---
   return (
-    <Box p={[4, 6, 8]} maxW="1200px" mx="auto" bg="neutral.50" minH="100vh">
+    <Box p={[4, 6]}  mx="auto" bg="neutral.50" minH="100vh" border="2px solid">
       <VStack spacing={8} align="stretch">
         <Heading
-          size={{ base: "xl", md: "2xl" }}
+          size={{ base: "lg", md: "2xl" }}
           textAlign="center"
           color="brand.700"
           lineHeight="1.3"
           fontWeight="extrabold"
         >
-          🌍 Find Places Near You{" "}
+          Find Places Near You{" "}
           {city && (
             <Text as="span" fontSize={{ base: "md", md: "xl" }} color="accent.600">
               in {city}
@@ -423,7 +452,7 @@ export default function NearbyPlaces() {
           shadow="md"
         >
           <Input
-            placeholder="Search by name (e.g. pizza, gym, barber)..."
+            placeholder="Search by name (e.g. school, restaurant...)..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             borderRadius="lg"
@@ -463,6 +492,7 @@ export default function NearbyPlaces() {
           </Button>
         </Stack>
 
+        
         {/* Radius slider */}
         <Box bg="white" p={4} borderRadius="xl" shadow="sm" zIndex="100">
           <HStack justify="space-between" mb={2}>
@@ -502,6 +532,15 @@ export default function NearbyPlaces() {
           </Slider>
         </Box>
 
+        {!loading && places.length === 0 && (
+          <Flex direction="column" align="center" justify="center"  borderRadius="xl">
+            <Text textAlign="center" color="neutral.600" fontSize="lg">
+              Try searching for a place name or select a category.
+            </Text>
+          </Flex>
+        )}
+
+
         {/* Map */}
         <Box bg="white" borderRadius="xl" shadow="md" overflow="hidden" minH="260px">
           {location ? (
@@ -513,8 +552,9 @@ export default function NearbyPlaces() {
             >
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               {/* user position marker */}
-              <Marker position={[location.lat, location.lon]}>
-                <Popup>You are here</Popup>
+              <Marker icon={redIcon}
+                position={[location.lat, location.lon]}>
+                <Popup >You are here</Popup>
               </Marker>
 
               {/* place markers */}
@@ -563,7 +603,7 @@ export default function NearbyPlaces() {
         {/* Show actual places */}
         {!loading && places.length > 0 && (
           <>
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} mt={4}>
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} mt={4} >
               {places.map((place, i) => {
                 const iconKey = detectIconKey(place);
                 const PlaceIcon = iconMap[iconKey] || iconMap.default;
@@ -654,8 +694,12 @@ export default function NearbyPlaces() {
             {category && hasMore && (
               <Flex mt={6} justify="center">
                 <Button
-                  onClick={() => findPlaces({ reset: false, nextPage: true })}
-                  isLoading={loading}
+                  ref={loadMoreRef}
+                  onClick={() => {
+                    scrollYRef.current = window.scrollY;   // Save scroll before load
+                    findPlaces({ reset: false, nextPage: true });
+                  }}
+                   isLoading={loading}
                   colorScheme="teal"
                 >
                   Load more
@@ -665,14 +709,7 @@ export default function NearbyPlaces() {
           </>
         )}
 
-        {!loading && places.length === 0 && (
-          <Flex direction="column" align="center" justify="center" py={10} borderRadius="xl">
-            <Icon as={FaSearch} boxSize={12} color="neutral.400" mb={4} />
-            <Text textAlign="center" color="neutral.600" fontSize="lg">
-              Try searching for a place name or select a category.
-            </Text>
-          </Flex>
-        )}
+        
       </VStack>
     </Box>
   );

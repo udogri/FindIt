@@ -162,7 +162,7 @@ const Community = () => {
   }, [userLocation, showGlobalCommunity]); // Re-fetch when showGlobalCommunity changes
 
   return (
-    <Box px={{ base: 4, md: 8 }} py={12} bg="neutral.50" minH="100vh">
+    <Box px={{ base: 4, md: 6 }} py={12} bg="neutral.50" minH="100vh">
       <VStack spacing={6} textAlign="center" mb={10}>
         <Heading fontSize={{ base: "2xl", md: "4xl" }} fontWeight="extrabold" color="brand.700">
           Join the Community
@@ -170,29 +170,71 @@ const Community = () => {
         <Text fontSize={{ base: "md", md: "lg" }} color="neutral.700" maxW="700px">
           Help reunite people with their lost belongings. Whether you've found something or lost an item, we're here to make connection easier.
         </Text>
-      </VStack>
-
-      <Box mt={12}>
-        <Flex justifyContent="center" alignItems="center" mb={6} flexDirection="column">
-          <Heading fontSize={{ base: "xl", md: "2xl" }} color="neutral.800" textAlign="center">
-            {showGlobalCommunity ? "Global Community Reports" : "Recent Reports Nearby"}
+        <Flex
+          justifyContent="center"
+          alignItems="center"
+          mb={10}
+          flexDirection="column"
+          
+          p={6}
+          borderRadius="2xl"
+          w="100%"
+        >
+          <Heading
+            fontSize={{ base: "2xl", md: "3xl" }}
+            color="neutral.900"
+            textAlign="center"
+            fontWeight="extrabold"
+          >
           </Heading>
-          <Text fontSize="sm" color="neutral.500" mt={2} mb={4} textAlign="center" maxW="400px">
+
+          <Text
+            fontSize={{ base: "sm", md: "md" }}
+            color="neutral.600"
+            mt={2}
+            mb={5}
+            textAlign="center"
+            maxW="480px"
+          >
             {showGlobalCommunity
-              ? "Viewing all reports globally."
-              : "Viewing reports within 20km of your location."}
+              ? "You’re viewing reports from users around the world."
+              : "Showing community reports detected within 20km of your location."}
           </Text>
-          <FormControl display="flex" alignItems="center" justifyContent="center" width="auto">
-            <FormLabel htmlFor="global-community-toggle" mb="0">
-              Show Global Community
-            </FormLabel>
+
+          <Flex
+            align="center"
+            bg="neutral.100"
+            p={3}
+            borderRadius="full"
+            shadow="sm"
+            transition="0.2s"
+            _hover={{
+              shadow: "md",
+            }}
+            gap={3}
+          >
+            <Text fontSize="sm" color="rgba(21, 24, 30, 0.85)" fontWeight="medium">
+              Global Mode
+            </Text>
+
             <Switch
-              id="global-community-toggle"
+              size="lg"
+              colorScheme="teal"
               isChecked={showGlobalCommunity}
               onChange={() => setShowGlobalCommunity(!showGlobalCommunity)}
+              sx={{
+                ".chakra-switch__track": {
+                  background: showGlobalCommunity ? "rgba(21, 24, 30, 0.85)" : "neutral.400",
+                },
+              }}
             />
-          </FormControl>
+          </Flex>
         </Flex>
+      </VStack>
+
+      <Box>
+        
+
 
         {loading ? (
           // 🦴 Skeleton Loading Grid

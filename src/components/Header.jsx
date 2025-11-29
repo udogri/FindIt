@@ -56,7 +56,7 @@ const NavLink = ({ name, path, isActive, onClose }) => (
       height: '2px',
       bg: 'brand.300',
     }}
-    
+
   >
     {name}
   </Link>
@@ -80,38 +80,42 @@ export default function Header() {
     <Box
       position="sticky"
       top="0"
-      zIndex="999"
+      zIndex="1009"
       backdropFilter="blur(8px)"
       bg="rgba(26, 32, 44, 0.85)"
       shadow="md"
       transition="all 0.3s ease"
     >
-      <Flex h={16} align="center" justifyContent="space-between" px={4}>
+      <Flex h={16} align="center" justifyContent="space-between" px={6}>
         {/* Logo */}
         <Box
           color="white"
           fontWeight="bold"
           fontSize="xl"
-          _hover={{
-            color: 'brand.300',
-            transform: 'scale(1.05)',
-          }}
-          transition="all 0.2s"
+
         >
           <RouterLink to="/home">FindIt</RouterLink>
         </Box>
 
         {/* Mobile Hamburger */}
-        <IconButton
-          size="md"
-          icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
-          aria-label="Open Menu"
-          display={{ md: 'none' }}
+        <Box
+          display={{ base: "flex", md: "none" }}
+          alignItems="center"
+          justifyContent="center"
+          cursor="pointer"
+          borderRadius="md"
           onClick={isOpen ? onClose : onOpen}
-          color="white"
-          bg="transparent"
-          _hover={{ bg: 'brand.600' }}
-        />
+          _hover={{
+            bg: "whiteAlpha.200",
+          }}
+        >
+          {isOpen ? (
+            <CloseIcon boxSize={5} color="white" />
+          ) : (
+            <HamburgerIcon boxSize={6} color="white" />
+          )}
+        </Box>
+
 
         {/* Desktop Nav */}
         <HStack spacing={4} alignItems="center" display={{ base: 'none', md: 'flex' }}>
@@ -125,31 +129,31 @@ export default function Header() {
           ))}
           <NotificationBell />
           <Button
-  onClick={handleLogout}
-  size="md"
-  px={5}
-  fontWeight="semibold"
-  color="white"
-  bg="transparent"
-  border="1px solid"
-  borderColor="white"
-  rounded="lg"
-  transition="all 0.25s ease"
-  _hover={{
-    bg: "red.500",
-    color: "white",
-    transform: "scale(1.05)",
-    shadow: "lg",
-    border:"none"
-  }}
-  _active={{
-    transform: "scale(0.98)",
-    bg: "red.600",
-  }}
-  leftIcon={<MdLogout size={18} />}
->
-  Logout
-</Button>
+            onClick={handleLogout}
+            size="md"
+            px={5}
+            fontWeight="semibold"
+            color="white"
+            bg="transparent"
+            border="1px solid"
+            borderColor="white"
+            rounded="lg"
+            transition="all 0.25s ease"
+            _hover={{
+              bg: "red.500",
+              color: "white",
+              transform: "scale(1.05)",
+              shadow: "lg",
+              border: "none"
+            }}
+            _active={{
+              transform: "scale(0.98)",
+              bg: "red.600",
+            }}
+            leftIcon={<MdLogout size={18} />}
+          >
+            Logout
+          </Button>
 
 
 
@@ -168,7 +172,7 @@ export default function Header() {
             shadow="lg"
             position="absolute"
           >
-            <Stack as="nav" spacing={4} px={4}>
+            <Stack as="nav" spacing={4} px={6}>
               {Links.map((link) => (
                 <NavLink
                   key={link.name}
@@ -179,33 +183,33 @@ export default function Header() {
                 />
               ))}
               <Button
-  onClick={handleLogout}
-  w="100%"
-  justifyContent="flex-start"
-  size="md"
-  px={4}
-  fontWeight="semibold"
-  color="white"
-  bg="transparent"
-  border="1px solid"
-  borderColor="white"
-  rounded="lg"
-  transition="all 0.25s ease"
-  leftIcon={<MdLogout size={18} />}
-  _hover={{
-    bg: "red.500",
-    color: "white",
-    transform: "scale(1.03)",
-    shadow: "md",
-    border:"none"
-  }}
-  _active={{
-    transform: "scale(0.97)",
-    bg: "red.600",
-  }}
->
-  Logout
-</Button>
+                onClick={handleLogout}
+                w="100%"
+                justifyContent="flex-start"
+                size="md"
+                px={4}
+                fontWeight="semibold"
+                color="white"
+                bg="transparent"
+                border="1px solid"
+                borderColor="white"
+                rounded="lg"
+                transition="all 0.25s ease"
+                leftIcon={<MdLogout size={18} />}
+                _hover={{
+                  bg: "red.500",
+                  color: "white",
+                  transform: "scale(1.03)",
+                  shadow: "md",
+                  border: "none"
+                }}
+                _active={{
+                  transform: "scale(0.97)",
+                  bg: "red.600",
+                }}
+              >
+                Logout
+              </Button>
 
 
 

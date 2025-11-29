@@ -342,7 +342,7 @@ export default function LostAndFound() {
 
 
   return (
-    <Box p={8} textAlign="center" bg="neutral.50" minH="100vh">
+    <Box p={6} textAlign="center" bg="neutral.50" minH="100vh">
       <Heading mb={4} fontSize={{ base: "2xl", md: "4xl" }} color="brand.700">
         Lost & Found - My Reports
       </Heading>
@@ -353,6 +353,7 @@ export default function LostAndFound() {
       <Button
         bg="rgba(26, 32, 44, 0.85)"
         mb={8}
+        w={{base:"100%", md:"auto"}}
         onClick={() => {
           resetForm();
           openFormModal();

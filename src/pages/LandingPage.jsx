@@ -7,6 +7,7 @@ import locationPin from '../Assets/locationPin.png';
 import lostBag from '../Assets/lostBag.webp';
 import { Input, Textarea, FormControl, FormLabel, IconButton } from '@chakra-ui/react';
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
+import LandingPageHeader from '../components/LandingPageHeader';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -14,41 +15,7 @@ export default function LandingPage() {
   return (
     <Box>
       {/* Top Bar */}
-      <Flex h={16} bg="rgba(26, 32, 44, 0.85)" px={10} align="center" justify="space-between" shadow="md">
-        <Box color="white" fontWeight="bold" fontSize="xl">FindIt</Box>
-        <Text
-  as="button"
-  onClick={() => navigate('/login/signup')}
-  fontWeight="600"
-  fontSize="sm"
-  color="white"
-  position="relative"
-  transition="all 0.3s ease"
-  _hover={{
-    transform: "scale(1.25)",
-  }}
-  _after={{
-    content: '""',
-    position: "absolute",
-    bottom: "-2px",
-    left: 0,
-    width: "0%",
-    height: "2px",
-    bg: "blue.500",
-    transition: "width 0.3s ease",
-  }}
-  _hover={{
-    transform: "scale(1.25)",
-    _after: {
-      width: "100%",
-    },
-  }}
->
-  Login
-</Text>
-
-
-      </Flex>
+      <LandingPageHeader />
 
       {/* Hero Section */}
       <Stack
@@ -185,7 +152,7 @@ export default function LandingPage() {
             Beyond lost and found, FindIt also offers a powerful location finder. Search for places you're interested in,
             discover new spots, and get directions. It's your go-to tool for exploring your surroundings.
           </Text>
-          
+
         </Stack>
       </Flex>
 
