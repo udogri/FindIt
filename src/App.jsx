@@ -12,7 +12,7 @@ import NearbyPlacesFinder from './pages/NearByPlaces';
 
 function App() {
   const location = useLocation();
-  const hideHeaderRoutes = ['/', '/login/signup' ]; // Add other routes if you want to hide header elsewhere too
+  const hideHeaderRoutes = ['/', '/login/signup']; // Add other routes if you want to hide header elsewhere too
 
   return (
     <Flex direction="column" minHeight="100vh">
@@ -27,7 +27,7 @@ function App() {
           <Route path="/login/signup" element={<LoginSignup />} />
         </Routes>
       </Box>
-      <Footer />
+      {!hideHeaderRoutes.includes(location.pathname) && <Footer />}
     </Flex>
   );
 }

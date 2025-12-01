@@ -16,6 +16,7 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
 } from 'firebase/auth';
+import newHero from '../Assets/newHero.jpg';
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 
@@ -70,7 +71,10 @@ const LoginSignup = () => {
       display="flex"
       alignItems="center"
       justifyContent="center"
-      bg="neutral.100"
+      bgImage={`linear-gradient(to right, rgba(24, 23, 23, 0.6) 0%, rgba(0, 0, 0, 0.8) 80%), url(${newHero})`}
+      bgPosition="center"
+      bgRepeat="no-repeat"
+      bgSize="cover"
       py={10}
     >
       <VStack
