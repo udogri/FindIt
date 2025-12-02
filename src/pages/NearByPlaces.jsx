@@ -43,6 +43,10 @@ import {
   FaFilm,
   FaChevronDown,
 } from "react-icons/fa";
+import { IoTicket } from "react-icons/io5";
+import { TbMilitaryRankFilled } from "react-icons/tb";
+import { IoSchool } from "react-icons/io5";
+import { MdLocalAirport } from "react-icons/md";
 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
@@ -114,8 +118,13 @@ export default function NearbyPlaces() {
     cinema: "entertainment.cinema",
     worship: "religion.place_of_worship", // groups church + mosque
     school: "education.school",
-    bank: "finance.bank",
-    gas: "service.gas_station",
+    // bank: "building.commercial",
+    guesthouse: "accommodation.guest_house",
+    apartment: "accommodation.apartment",
+    airport: "airport",
+    University: "building.university",
+    military: "building.military",
+    entertainment: "building.entertainment",
   };
 
   // --- ICON MAP for UI only (keys are the same as categoryMap keys) ---
@@ -137,7 +146,12 @@ export default function NearbyPlaces() {
     worship: FaChurch,
     school: FaSchool,
     bank: FaStore,
-    gas: FaGasPump,
+    guesthouse: FaHotel,
+    apartment: FaHotel,
+    airport: MdLocalAirport,
+    university: IoSchool,
+    military: TbMilitaryRankFilled,
+    entertainment: IoTicket,
     default: FaStore,
   };
 
