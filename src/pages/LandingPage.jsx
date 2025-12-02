@@ -309,7 +309,7 @@ export default function LandingPage() {
             {[
               { q: "How does FindIt work?", a: "FindIt lets users report lost or found items, browse listings, and connect with owners or finders quickly and safely." },
               { q: "Is FindIt free to use?", a: "Yes. All core features such as reporting, searching, and recovering items are free." },
-              { q: "How do I report a lost item?", a: "Create an account, click 'Report Lost Item', fill in the details, and upload an image if possible to improve visibility." },
+              { q: "How do I report a lost item?", a: "Create an account, click 'Report Lost Item' or navigate to 'lost & found', fill in the details, and upload an image if possible to improve visibility." },
               { q: "Can I search for places of interest?", a: "Yes! FindIt includes a location discovery feature that helps you explore important or useful places around your city." },
               { q: "Is my data safe on FindIt?", a: "Yes. Only essential information is shared to help match items to their owners. Your information is handled securely." },
             ].map((faq, idx) => (
