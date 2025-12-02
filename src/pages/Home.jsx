@@ -46,8 +46,8 @@ const HomePage = () => {
         break;
     }
   };
-  
-  
+
+
 
   return (
     <Box bg="neutral.50" minH="100vh" p={{ base: 4, md: 6 }}>
@@ -83,10 +83,14 @@ const HomePage = () => {
             </Text>
             <Button
               mt={8}
-              bg="rgba(21, 24, 30, 0.85)"
-              size="lg"
-              px={8}
-              py={6}
+              _focus={{ boxShadow: "none" }}
+              w={{ base: "100%", md: "171px" }}
+              bg="white"
+              fontSize="14px"
+              px="28px"
+              py="10px"
+              color="#2E2B24"
+              _hover={{ bg: "transparent", color: "white", border: "1px solid" }}
               onClick={() => navigate('/lost-and-found')}
             >
               Get Started
@@ -104,38 +108,38 @@ const HomePage = () => {
           {isLoading
             ? [1, 2, 3].map((i) => <SkeletonCard key={i} />)
             : features.map((f, i) => (
-                <MotionBox
-                  key={i}
-                  bg={featureBg}
-                  p={8}
-                  borderRadius="2xl"
-                  shadow="lg"
-                  textAlign="center"
-                  flex="1"
-                  cursor="pointer"
-                  whileHover={{ scale: 1.03, boxShadow: '2xl' }}
-                  transition={{ duration: 0.3 }}
-                  onClick={() => handleFeatureClick(i)}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transitionDelay={`${i * 0.15}s`}
-                >
-                  <Image
-                    src={f.image}
-                    alt={f.title}
-                    boxSize="120px"
-                    mx="auto"
-                    mb={6}
-                    objectFit="contain"
-                  />
-                  <Heading fontSize={{ base: 'lg', md: 'xl' }} mb={3} color="brand.700">
-                    {f.title}
-                  </Heading>
-                  <Text fontSize={{ base: 'sm', md: 'md' }} color="neutral.600">
-                    {f.text}
-                  </Text>
-                </MotionBox>
-              ))}
+              <MotionBox
+                key={i}
+                bg={featureBg}
+                p={8}
+                borderRadius="2xl"
+                shadow="lg"
+                textAlign="center"
+                flex="1"
+                cursor="pointer"
+                whileHover={{ scale: 1.03, boxShadow: '2xl' }}
+                transition={{ duration: 0.3 }}
+                onClick={() => handleFeatureClick(i)}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transitionDelay={`${i * 0.15}s`}
+              >
+                <Image
+                  src={f.image}
+                  alt={f.title}
+                  boxSize="120px"
+                  mx="auto"
+                  mb={6}
+                  objectFit="contain"
+                />
+                <Heading fontSize={{ base: 'lg', md: 'xl' }} mb={3} color="brand.700">
+                  {f.title}
+                </Heading>
+                <Text fontSize={{ base: 'sm', md: 'md' }} color="neutral.600">
+                  {f.text}
+                </Text>
+              </MotionBox>
+            ))}
         </Stack>
       </VStack>
     </Box>
@@ -184,7 +188,7 @@ const features = [
     title: 'Find Nearby Locations',
     text: 'Looking for a place nearby? Quickly search and discover barbershops, cafes, and other local spots around you.',
     image: 'https://cdn-icons-png.flaticon.com/512/854/854878.png',
-  },  
+  },
   {
     title: 'Chat & Connect',
     text: 'Use in-app messaging to reach out and coordinate item returns safely.',

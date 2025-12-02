@@ -424,7 +424,7 @@ export default function NearbyPlaces() {
 
   // --- UI render ---
   return (
-    <Box p={[4, 6]}  mx="auto" bg="neutral.50" minH="100vh" border="2px solid">
+    <Box p={[4, 6]} mx="auto" bg="neutral.50" minH="100vh" border="2px solid">
       <VStack spacing={8} align="stretch">
         <Heading
           size={{ base: "lg", md: "2xl" }}
@@ -480,19 +480,22 @@ export default function NearbyPlaces() {
 
           <Button
             bg="rgba(26, 32, 44, 0.85)"
-            borderRadius="lg"
+            fontSize="14px"
+            px="28px"
+            py="10px"
+            color="white"
+            _hover={{ bg: "transparent", color: "rgba(26, 32, 44, 0.85)", border: "1px solid" }}
             leftIcon={<FaSearch />}
             onClick={() => findPlaces({ reset: true })}
             isDisabled={loading}
             w={{ base: "100%", md: "auto" }}
             size="lg"
-            px={8}
           >
             {loading ? "Searching..." : "Search"}
           </Button>
         </Stack>
 
-        
+
         {/* Radius slider */}
         <Box bg="white" p={4} borderRadius="xl" shadow="sm" zIndex="100">
           <HStack justify="space-between" mb={2}>
@@ -533,7 +536,7 @@ export default function NearbyPlaces() {
         </Box>
 
         {!loading && places.length === 0 && (
-          <Flex direction="column" align="center" justify="center"  borderRadius="xl">
+          <Flex direction="column" align="center" justify="center" borderRadius="xl">
             <Text textAlign="center" color="neutral.600" fontSize="lg">
               Try searching for a place name or select a category.
             </Text>
@@ -699,7 +702,7 @@ export default function NearbyPlaces() {
                     scrollYRef.current = window.scrollY;   // Save scroll before load
                     findPlaces({ reset: false, nextPage: true });
                   }}
-                   isLoading={loading}
+                  isLoading={loading}
                   colorScheme="teal"
                 >
                   Load more
@@ -709,7 +712,7 @@ export default function NearbyPlaces() {
           </>
         )}
 
-        
+
       </VStack>
     </Box>
   );

@@ -351,7 +351,13 @@ export default function LostAndFound() {
       </Text>
 
       <Button
-        bg="rgba(26, 32, 44, 0.85)"
+        _focus={{ boxShadow: "none" }}
+              bg="rgba(26, 32, 44, 0.85)"
+              fontSize="14px"
+              px="28px"
+              py="10px"
+              color="white"
+              _hover={{ bg: "transparent", color: "rgba(26, 32, 44, 0.85)", border: "1px solid" }}
         mb={8}
         w={{base:"100%", md:"auto"}}
         onClick={() => {
